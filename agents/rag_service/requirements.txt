@@ -1,0 +1,8 @@
+# RAG HTTP-сервис (запуск на отдельном сервере)
+# Установить из корня репо: pip install -r agents/rag_service/requirements.txt
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+python-dotenv>=1.0.0
+sentence-transformers>=2.2.0
+psycopg[binary]>=3.1
+pgvector>=0.2.0

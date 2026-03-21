@@ -1,0 +1,142 @@
+{
+  "sections": [
+    "hero",
+    "about",
+    "services",
+    "benefits",
+    "cases",
+    "pricing",
+    "faq",
+    "contacts",
+    "footer"
+  ],
+  "blocks": [
+    {
+      "type": "hero",
+      "content": {
+        "title": "Современные IT-решения для вашего бизнеса",
+        "cta": {
+          "text": "Получить консультацию",
+          "link": "https://t.me/techservice_bot"
+        }
+      },
+      "priority": 1,
+      "data_source": "site_goals.cta.main"
+    },
+    {
+      "type": "about",
+      "content": {
+        "description": "ТехноСервис - это команда профессионалов с более чем 10-летним опытом в разработке веб-сайтов и мобильных приложений.",
+        "tagline": "Современные IT-решения для вашего бизнеса"
+      },
+      "priority": 2,
+      "data_source": "brand.description"
+    },
+    {
+      "type": "services",
+      "content": {
+        "description": "Мы специализируемся на создании современных веб-сайтов, мобильных приложений и корпоративных решений.",
+        "offer": "Предлагаем полный цикл разработки веб-сайтов: от проектирования и дизайна до запуска и поддержки."
+      },
+      "priority": 3,
+      "data_source": "business.activity.detailed"
+    },
+    {
+      "type": "benefits",
+      "content": {
+        "benefits": [
+          "Быстрая разработка - от 2 недель до запуска",
+          "Современные технологии и лучшие практики",
+          "Адаптивный дизайн для всех устройств",
+          "SEO-оптимизация и поддержка"
+        ]
+      },
+      "priority": 4,
+      "data_source": "business.offer.key_benefits"
+    },
+    {
+      "type": "cases",
+      "content": {
+        "case_studies": [
+          {
+            "title": "Разработка интернет-магазина для сети магазинов",
+            "client": "ООО 'Торговый дом'",
+            "problem": "Устаревший сайт не приносил продаж, не работал на мобильных устройствах."
+          }
+        ]
+      },
+      "priority": 5,
+      "data_source": "social_proof.cases"
+    },
+    {
+      "type": "pricing",
+      "content": {
+        "pricing_info": "Цены указаны за базовый пакет. Итоговая стоимость зависит от сложности проекта и обсуждается индивидуально."
+      },
+      "priority": 6,
+      "data_source": "business.pricing.notes"
+    },
+    {
+      "type": "faq",
+      "content": {
+        "faqs": [
+          {
+            "question": "Сколько времени занимает разработка сайта?",
+            "answer": "Срок разработки зависит от сложности проекта. Простой лендинг - 2-3 недели, корпоративный сайт - от 4 недель."
+          }
+        ]
+      },
+      "priority": 7,
+      "data_source": "content_assets.faq"
+    },
+    {
+      "type": "contacts",
+      "content": {
+        "phone": "+79991234567",
+        "email": "info@techservice.ru",
+        "address": "Россия, г. Москва, ул. Примерная, д. 1",
+        "map": "ссылка_на_карту"
+      },
+      "priority": 8,
+      "data_source": "legal_rkn"
+    },
+    {
+      "type": "footer",
+      "content": {
+        "legal_info": {
+          "entity_type": "индивидуальный предприниматель",
+          "full_name": "Иванов Иван Иванович",
+          "inn": "123456789012",
+          "phone": "+7 (999) 123-45-67",
+          "email": "info@techservice.ru"
+        }
+      },
+      "priority": 9,
+      "data_source": "legal_rkn"
+    }
+  ],
+  "navigation": {
+    "main_menu": [
+      "Главная",
+      "О компании",
+      "Услуги",
+      "Цены",
+      "Контакты"
+    ],
+    "footer_links": [
+      "Политика конфиденциальности",
+      "Условия использования"
+    ]
+  },
+  "features": [
+    "Гарантия на код - 6 месяцев",
+    "Бесплатные правки в течение месяца после запуска",
+    "Гарантия работоспособности сайта 99.9%",
+    "Сертифицированные разработчики"
+  ],
+  "metadata": {
+    "language": "ru",
+    "primary_goal": "leads",
+    "offer_type": "services"
+  }
+}

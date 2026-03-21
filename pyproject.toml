@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "automatorio-agent"
+version = "0.1.0"
+description = "Automatorio Agent for website architecture generation"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph",
+    "requests",
+    "python-dotenv",
+    "langchain-mcp-adapters",
+    "langchain-core",
+    "langchain-openai",
+    "playwright",
+    "tree-sitter",
+    "psycopg[binary]>=3.1",
+    "pgvector>=0.2.0",
+]
+
+[tool.setuptools]
+packages = ["agents", "agents.structure_agent", "agents.structure_agent.nodes", "agents.structure_agent.llm", "agents.structure_agent.utils", "agents.generate_agent", "agents.generate_agent.llm", "agents.validate_agent", "agents.validate_agent.nodes", "agents.unified_agent", "agents.rag_graph", "agents.rag_graph.nodes", "agents.rag_graph.rag", "agents.rag_graph.rag.code"]

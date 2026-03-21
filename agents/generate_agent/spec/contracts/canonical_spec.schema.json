@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CanonicalSpec",
+  "description": "Normalized site specification produced by Semantic Parser from raw SessionExport",
+  "type": "object",
+  "required": ["brand", "pages", "sections_available", "primary_cta", "content", "preferences", "legal", "site_goal", "price_segment", "session_id"],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "Copied from SessionExport.session_id for pattern memory tracking"
+    },
+    "brand": {
+      "type": "object",
+      "required": ["name", "activity"],
+      "properties": {
+        "name": { "type": "string" },
+        "activity": { "type": "string" },
+        "audience": { "type": ["string", "null"] },
+        "positioning": { "type": ["string", "null"] },
+        "usp": { "type": ["string", "null"] },
+        "geo": { "type": ["string", "null"] },
+        "competitors": { "type": ["string", "null"] },
+        "exclude_clients": { "type": ["string", "null"] },
+        "offer": { "type": ["string", "null"] },
+        "guarantees": { "type": ["string", "null"] },
+        "objections": { "type": ["string", "null"] }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "List of pages to generate, e.g. ['home']"
+    },
+    "sections_available": {
+      "type": "object",
+      "description": "Which content sections have data to display",
+      "properties": {
+        "hero": { "type": "boolean" },
+        "features": { "type": "boolean" },
+        "cases": { "type": "boolean" },
+        "testimonials": { "type": "boolean" },
+        "team": { "type": "boolean" },
+        "faq": { "type": "boolean" },
+        "achievements": { "type": "boolean" },
+        "certificates": { "type": "boolean" },
+        "social_proof": { "type": "boolean" }
+      }
+    },
+    "primary_cta": {
+      "type": "object",
+      "required": ["label", "action"],
+      "properties": {
+        "label": { "type": "string", "description": "Button text" },
+        "action": { "type": "string", "enum": ["phone", "whatsapp", "telegram", "form", "scroll"] },
+        "link": { "type": ["string", "null"] },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["telegram", "whatsapp", "phone", "form"] },
+              "link": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "secondary_cta": {
+      "type": ["object", "null"],
+      "properties": {
+        "label": { "type": "string" },
+        "action": { "type": "string" }
+      }
+    },
+    "content": {
+      "type": "object",
+      "description": "Text seeds derived from strategy data",
+      "properties": {
+        "hero_headline_seed": { "type": ["string", "null"] },
+        "offer_text": { "type": ["string", "null"] },
+        "usp_text": { "type": ["string", "null"] },
+        "guarantees_text": { "type": ["string", "null"] },
+        "work_hours": { "type": ["string", "null"] },
+        "address": { "type": ["string", "null"] },
+        "faq_raw": { "type": ["string", "null"] },
+        "reviews_raw": { "type": ["string", "null"] },
+        "cases_desc": { "type": ["string", "null"] },
+        "team_name": { "type": ["string", "null"] },
+        "team_desc": { "type": ["string", "null"] },
+        "achievements_text": { "type": ["string", "null"] }
+      }
+    },
+    "assets": {
+      "type": "object",
+      "properties": {
+        "logo": { "type": ["string", "null"] },
+        "materials": { "type": ["string", "null"] },
+        "team_photo": { "type": ["string", "null"] },
+        "cases_images": { "type": ["string", "null"] },
+        "certificates": { "type": ["string", "null"] }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "style": { "type": ["string", "null"], "description": "User-described style preference" },
+        "typography_density": {
+          "type": "string",
+          "enum": ["minimal", "medium", "heavy"],
+          "description": "Normalized from 'Минимум текста' / 'Средний объём' / 'Много текста'"
+        },
+        "animation_level": {
+          "type": "string",
+          "enum": ["none", "subtle", "medium", "max"],
+          "description": "Normalized from 'Без анимаций' / 'Деликатные' / 'Средние' / 'Максимум'"
+        },
+        "site_target": {
+          "type": "string",
+          "enum": ["mobile", "desktop"],
+          "description": "From json_data.site_target: primary device — mobile-first vs desktop-first layout and UX"
+        }
+      }
+    },
+    "site_goal": {
+      "type": "string",
+      "enum": ["sales", "leads", "trust", "presentation"],
+      "description": "Normalized from 'Продажи' / 'Заявки' / 'Доверие' / 'Презентация'"
+    },
+    "price_segment": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "custom"],
+      "description": "Normalized from 'Низкий' / 'Средний' / 'Высокий' / 'Индивидуально'"
+    },
+    "legal": {
+      "type": "object",
+      "properties": {
+        "rkn_type": { "type": ["string", "null"] },
+        "name": { "type": ["string", "null"] },
+        "inn": { "type": ["string", "null"] },
+        "ogrn": { "type": ["string", "null"] },
+        "ogrnip": { "type": ["string", "null"] },
+        "kpp": { "type": ["string", "null"] },
+        "address": { "type": ["string", "null"] },
+        "email": { "type": ["string", "null"] },
+        "phone": { "type": ["string", "null"] },
+        "city": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

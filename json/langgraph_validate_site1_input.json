@@ -1,0 +1,6 @@
+{
+  "messages": [{"type": "human", "content": "Снять скрины сайта"}],
+  "repo_name": "site1",
+  "headless": false,
+  "screenshot_dir": "site1/screenshots"
+}

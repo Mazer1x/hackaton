@@ -1,0 +1,240 @@
+[
+  {
+    "text": "---\nimport '../styles/global.css';\n\ninterface Props {\n  title?: string;\n  description?: string;\n}\nconst { title = 'Dota 2 Merch — Официальный мерч', description = 'Оригинальный мерч по Dota 2: одежда, фигурки, аксессуары. Доставка по России и СНГ.' } = Astro.props;\n---",
+    "type": "frontmatter",
+    "file": "site/src/layouts/Layout.astro",
+    "start_byte": 0,
+    "end_byte": 347
+  },
+  {
+    "text": "<!doctype html>",
+    "type": "doctype",
+    "file": "site/src/layouts/Layout.astro",
+    "start_byte": 348,
+    "end_byte": 363
+  },
+  {
+    "text": "<html lang=\"ru\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <meta name=\"description\" content={description} />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg\" />\n    <title>{title}</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\" />\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin />\n  </head>\n  <body class=\"noise-overlay\">\n    <slot />\n  </body>\n</html>",
+    "type": "element:<html>",
+    "file": "site/src/layouts/Layout.astro",
+    "start_byte": 364,
+    "end_byte": 854
+  },
+  {
+    "text": "---\nimport Layout from '../layouts/Layout.astro';\n---",
+    "type": "frontmatter",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 0,
+    "end_byte": 53
+  },
+  {
+    "text": "<header class=\"header\" style=\"position: relative; z-index: 1;\">\n    <div class=\"header-inner\">\n      <a href=\"#\" class=\"logo\">Dota 2 <span class=\"logo-accent\">Merch</span></a>\n      <nav class=\"nav\">\n        <a href=\"#catalog\">Каталог</a>\n        <a href=\"#reviews\">Отзывы</a>\n        <a href=\"#faq\">FAQ</a>\n        <a href=\"#contacts\">Контакты</a>\n      </nav>\n      <a href=\"#contacts\" class=\"btn btn-cta\">Написать в Telegram</a>\n    </div>\n  </header>",
+    "type": "element:<header>",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 66,
+    "end_byte": 550
+  },
+  {
+    "text": "<section class=\"hero\">\n      <div class=\"hero-bg\" aria-hidden=\"true\"></div>\n      <div class=\"hero-content section-reveal\">\n        <p class=\"hero-label\">Официальный и лицензированный мерч</p>\n        <h1 class=\"hero-title\">Герои. The International. <span class=\"text-gold\">Твой стиль.</span></h1>\n        <p class=\"hero-desc\">Худи, футболки, фигурки и эксклюзивные дропы. Качество и узнаваемый дизайн. Доставка по России и СНГ.</p>\n        <div class=\"hero-cta\">\n          <a href=\"#catalog\" class=\"btn btn-primary btn-cta\">Смотреть каталог</a>\n          <a href=\"#contacts\" class=\"btn btn-outline\">Предзаказ ограниченных серий</a>\n        </div>\n      </div>\n    </section>",
+    "type": "element:<section>",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 623,
+    "end_byte": 1466
+  },
+  {
+    "text": "<section id=\"catalog\" class=\"section\">\n      <div class=\"container\">\n        <h2 class=\"section-title section-reveal\">Что предлагаем</h2>\n        <p class=\"section-subtitle section-reveal delay-1\">Оригинальная продукция с героями и атрибутикой TI. Средний и премиум сегмент.</p>\n        <div class=\"catalog-grid\">\n          <article class=\"card card-hover section-reveal delay-1\">\n            <div class=\"card-visual card-visual-1\"></div>\n            <h3>Одежда</h3>\n            <p>Худи, футболки, свитшоты с принтами героев и логотипами The International.</p>\n          </article>\n          <article class=\"card card-hover section-reveal delay-2\">\n            <div class=\"card-visual card-visual-2\"></div>\n            <h3>Фигурки и постеры</h3>\n            <p>Коллекционные фигурки и постеры для настоящих фанатов.</p>\n          </article>\n          <article class=\"card card-hover section-reveal delay-3\">\n            <div class=\"card-visual card-visual-3\"></div>\n            <h3>Геймпад и периферия</h3>\n            <p>Мышки и коврики с фирменным дизайном Dota 2.</p>\n          </article>\n          <article class=\"card card-hover section-reveal delay-4\">\n            <div class=\"card-visual card-visual-4\"></div>\n            <h3>Эксклюзив</h3>\n            <p>Предзаказ ограниченных серий и коллаборации с командой.</p>\n          </article>\n        </div>\n        <p class=\"section-note section-reveal\">Магазин работает круглосуточно. Лицензированная продукция.</p>\n      </div>\n    </section>",
+    "type": "element:<section>",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 1501,
+    "end_byte": 3344
+  },
+  {
+    "text": "<section class=\"section section-dark\">\n      <div class=\"container\">\n        <h2 class=\"section-title section-reveal\">Почему мы</h2>\n        <ul class=\"usp-list\">\n          <li class=\"section-reveal delay-1\">Лицензированная продукция</li>\n          <li class=\"section-reveal delay-2\">Доставка по СНГ</li>\n          <li class=\"section-reveal delay-3\">Эксклюзивные дропы и коллаборации</li>\n        </ul>\n      </div>\n    </section>",
+    "type": "element:<section>",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 3367,
+    "end_byte": 3872
+  },
+  {
+    "text": "<section id=\"reviews\" class=\"section\">\n      <div class=\"container\">\n        <h2 class=\"section-title section-reveal\">Отзывы</h2>\n        <div class=\"reviews-grid\">\n          <blockquote class=\"review card section-reveal delay-1\">\n            <p>«Качество на уровне — худи сидит отлично»</p>\n            <cite>— Игорь, Москва</cite>\n          </blockquote>\n          <blockquote class=\"review card section-reveal delay-2\">\n            <p>«Фигурка Pudge как на скрине, упаковано супер»</p>\n            <cite>— @dota_fan</cite>\n          </blockquote>\n        </div>\n      </div>\n    </section>",
+    "type": "element:<section>",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 3899,
+    "end_byte": 4582
+  },
+  {
+    "text": "<section id=\"faq\" class=\"section section-dark\">\n      <div class=\"container container-narrow\">\n        <h2 class=\"section-title section-reveal\">Частые вопросы</h2>\n        <dl class=\"faq-list\">\n          <div class=\"faq-item section-reveal delay-1\">\n            <dt>Доставка?</dt>\n            <dd>По РФ 3–7 дней, СНГ до 14 дней.</dd>\n          </div>\n          <div class=\"faq-item section-reveal delay-2\">\n            <dt>Размеры?</dt>\n            <dd>Таблица размеров на странице каждого товара.</dd>\n          </div>\n          <div class=\"faq-item section-reveal delay-3\">\n            <dt>Предзаказ?</dt>\n            <dd>Оплата при появлении товара на складе.</dd>\n          </div>\n        </dl>\n      </div>\n    </section>",
+    "type": "element:<section>",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 4605,
+    "end_byte": 5457
+  },
+  {
+    "text": "<section id=\"contacts\" class=\"section\">\n      <div class=\"container container-narrow\">\n        <h2 class=\"section-title section-reveal\">Связаться с нами</h2>\n        <p class=\"section-subtitle section-reveal delay-1\">Доставка по России и СНГ. Ответим в Telegram или на почту.</p>\n        <div class=\"contacts-block\">\n          <a href=\"https://t.me/dota2merch_support\" class=\"btn btn-telegram section-reveal delay-2\" target=\"_blank\" rel=\"noopener\">Telegram: @dota2merch_support</a>\n          <a href=\"mailto:support@dota2merch.ru\" class=\"link-email section-reveal delay-3\">support@dota2merch.ru</a>\n          <form class=\"form section-reveal delay-4\" action=\"#\" method=\"post\">\n            <label for=\"name\">Имя</label>\n            <input id=\"name\" name=\"name\" type=\"text\" placeholder=\"Как к вам обращаться\" />\n            <label for=\"email\">Email</label>\n            <input id=\"email\" name=\"email\" type=\"email\" placeholder=\"для ответа\" />\n            <label for=\"message\">Сообщение</label>\n            <textarea id=\"message\" name=\"message\" rows=\"4\" placeholder=\"Вопрос или заказ\"></textarea>\n            <button type=\"submit\" class=\"btn btn-primary\">Отправить</button>\n          </form>\n        </div>\n      </div>\n    </section>",
+    "type": "element:<section>",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 5485,
+    "end_byte": 6827
+  },
+  {
+    "text": "<footer class=\"footer\" style=\"position: relative; z-index: 1;\">\n    <div class=\"container\">\n      <div class=\"footer-grid\">\n        <div>\n          <strong class=\"logo\">Dota 2 <span class=\"logo-accent\">Merch</span></strong>\n          <p>Официальный и лицензированный мерч по Dota 2.</p>\n        </div>\n        <div class=\"footer-legal\">\n          <p><strong>ИП Иванов</strong></p>\n          <p>ИНН 7701234567</p>\n          <p>г. Москва, ул. Примерная, д. 1</p>\n          <a href=\"mailto:legal@dota2merch.ru\">legal@dota2merch.ru</a>\n        </div>\n      </div>\n    </div>\n  </footer>",
+    "type": "element:<footer>",
+    "file": "site/src/pages/index.astro",
+    "start_byte": 6841,
+    "end_byte": 7486
+  },
+  {
+    "text": "@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Exo+2:ital,wght@0,400;0,600;0,700;1,400&display=swap');",
+    "type": "css:import_statement",
+    "file": "site/src/styles/global.css",
+    "start_byte": 66,
+    "end_byte": 212
+  },
+  {
+    "text": ":root {\n  --bg-deep: #0a0e14;\n  --bg-card: #111820;\n  --bg-elevated: #161d28;\n  --border: #1e2a38;\n  --text: #e2e8f0;\n  --text-muted: #94a3b8;\n  --accent-teal: #2dd4bf;\n  --accent-teal-dim: #14b8a6;\n  --accent-gold: #fbbf24;\n  --accent-gold-dim: #f59e0b;\n  --accent-blue: #38bdf8;\n  --glow-teal: rgba(45, 212, 191, 0.25);\n  --glow-gold: rgba(251, 191, 36, 0.2);\n  --font-display: 'Orbitron', sans-serif;\n  --font-body: 'Exo 2', sans-serif;\n  --radius: 12px;\n  --radius-lg: 20px;\n  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 214,
+    "end_byte": 746
+  },
+  {
+    "text": "*,\n*::before,\n*::after {\n  box-sizing: border-box;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 748,
+    "end_byte": 800
+  },
+  {
+    "text": "html {\n  scroll-behavior: smooth;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 802,
+    "end_byte": 837
+  },
+  {
+    "text": "body {\n  margin: 0;\n  font-family: var(--font-body);\n  font-size: 1rem;\n  line-height: 1.6;\n  color: var(--text);\n  background: var(--bg-deep);\n  -webkit-font-smoothing: antialiased;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 839,
+    "end_byte": 1023
+  },
+  {
+    "text": "h1, h2, h3, h4 {\n  font-family: var(--font-display);\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  margin: 0 0 0.5em;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1025,
+    "end_byte": 1146
+  },
+  {
+    "text": "h1 { font-size: clamp(2.25rem, 5vw, 3.75rem); }",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1148,
+    "end_byte": 1195
+  },
+  {
+    "text": "h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); }",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1196,
+    "end_byte": 1242
+  },
+  {
+    "text": "h3 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1243,
+    "end_byte": 1291
+  },
+  {
+    "text": "a {\n  color: var(--accent-teal);\n  text-decoration: none;\n  transition: color var(--transition);\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1293,
+    "end_byte": 1391
+  },
+  {
+    "text": "a:hover { color: var(--accent-gold); }",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1392,
+    "end_byte": 1430
+  },
+  {
+    "text": ".section-reveal {\n  opacity: 0;\n  transform: translateY(24px);\n  animation: sectionReveal 0.7s var(--transition) forwards;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1563,
+    "end_byte": 1687
+  },
+  {
+    "text": ".delay-1 { animation-delay: 0.1s; }",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1782,
+    "end_byte": 1817
+  },
+  {
+    "text": ".delay-2 { animation-delay: 0.2s; }",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1818,
+    "end_byte": 1853
+  },
+  {
+    "text": ".delay-3 { animation-delay: 0.3s; }",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1854,
+    "end_byte": 1889
+  },
+  {
+    "text": ".delay-4 { animation-delay: 0.4s; }",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 1890,
+    "end_byte": 1925
+  },
+  {
+    "text": ".btn-cta {\n  animation: ctaPulse 2.5s ease-in-out infinite;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 2087,
+    "end_byte": 2148
+  },
+  {
+    "text": ".card-hover {\n  transition: transform var(--transition), box-shadow var(--transition);\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 2203,
+    "end_byte": 2291
+  },
+  {
+    "text": ".card-hover:hover {\n  transform: translateY(-4px);\n  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--accent-teal);\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 2292,
+    "end_byte": 2420
+  },
+  {
+    "text": ".catalog-grid {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr 0.4fr);\n  gap: 0.2rem 4rem;\n  position: relative;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 2551,
+    "end_byte": 2674
+  },
+  {
+    "text": ".catalog-grid::before {\n  content: '';\n  position: absolute;\n  inset: -20px;\n  border: 3px dashed rgba(251, 191, 36, 0.5);\n  pointer-events: none;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 2675,
+    "end_byte": 2823
+  },
+  {
+    "text": ".noise-overlay::after {\n  content: '';\n  position: fixed;\n  inset: 0;\n  background: url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E\");\n  pointer-events: none;\n  z-index: 9999;\n  opacity: 0.45;\n}",
+    "type": "css:rule_set",
+    "file": "site/src/styles/global.css",
+    "start_byte": 2977,
+    "end_byte": 3427
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "generate_agent": "./agents/generate_agent/main.py:graph",
+    "validate_agent": "./agents/validate_agent/main.py:graph",
+    "validate_edit": "./agents/validate_agent/validate_edit_graph.py:graph",
+    "unified": "./agents/validate_agent/unified_graph.py:graph",
+    "rag_graph": "./agents/rag_graph/main.py:graph",
+    "screenshot_analysis": "./agents/validate_agent/screenshot_analysis_graph.py:screenshot_analysis_graph",
+    "deploy": "./agents/validate_agent/deploy_graph.py:deploy_graph"
+  },
+  "env": ".env"
+}

@@ -1,0 +1,4 @@
+# RAG: обучение (build_index) и запросы (query) — PostgreSQL + pgvector
+sentence-transformers>=2.2.0
+psycopg[binary]>=3.1
+pgvector>=0.2.0
