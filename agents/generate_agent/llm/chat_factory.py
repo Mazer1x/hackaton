@@ -31,9 +31,6 @@ def get_chat_llm(
     extra: dict = {"parallel_tool_calls": parallel_tool_calls}
     if max_tokens is not None:
         extra["max_tokens"] = max_tokens
-    # Force Vertex AI routing for Google models — avoids "User location is not supported" from Google AI Studio
-    if model.startswith("google/"):
-        extra["provider"] = {"order": ["Google Vertex"], "allow_fallbacks": False}
     print(f"LLM: OpenRouter {model} (temperature={temperature})")
     return ChatOpenAI(
         base_url=base_url,
