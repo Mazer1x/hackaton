@@ -75,9 +75,20 @@ async def get_sequential_thinking_tools_async() -> list[BaseTool]:
         return []
 
 
+def _run_coro_sync(async_fn):
+    """Run async_fn() from sync code, even when an event loop is already running (e.g. uvicorn)."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(async_fn())
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(lambda: asyncio.run(async_fn())).result(timeout=300)
+
+
 def get_sequential_thinking_tools() -> list[BaseTool]:
     """Synchronous wrapper for Sequential Thinking tools (reasoning phase)."""
-    return asyncio.run(get_sequential_thinking_tools_async())
+    return _run_coro_sync(get_sequential_thinking_tools_async)
 
 
 async def get_mcp_tools_async() -> list[BaseTool]:
@@ -104,4 +115,4 @@ async def get_mcp_tools_async() -> list[BaseTool]:
 
 def get_mcp_tools() -> list[BaseTool]:
     """Synchronous wrapper: get tools (for use during graph building)."""
-    return asyncio.run(get_mcp_tools_async())
+    return _run_coro_sync(get_mcp_tools_async)

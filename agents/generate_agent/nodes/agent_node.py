@@ -635,11 +635,16 @@ def _get_llm():
     return get_chat_llm(model=model, temperature=0.85, parallel_tool_calls=False)
 
 
-# Initialize tools and LLM
-_tools = get_base_tools()
+_tools = None
+_llm_with_tools = None
 
-_llm = _get_llm()
-_llm_with_tools = _llm.bind_tools(_tools, tool_choice="auto")
+
+def _get_llm_with_tools():
+    global _tools, _llm_with_tools
+    if _llm_with_tools is None:
+        _tools = get_base_tools()
+        _llm_with_tools = _get_llm().bind_tools(_tools, tool_choice="auto")
+    return _llm_with_tools, _tools
 
 
 def _agent_node(state: GenerateAgentState) -> dict:
@@ -774,7 +779,8 @@ No? → ONE action
     messages.append(HumanMessage(content=context))
     messages = normalize_messages_for_api(messages)
 
-    response = _llm_with_tools.invoke(messages)
+    llm_with_tools, _ = _get_llm_with_tools()
+    response = llm_with_tools.invoke(messages)
     
     # Increase iteration counter and save project_path
     return {

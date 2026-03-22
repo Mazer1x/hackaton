@@ -1,0 +1,12 @@
+{
+  "prompt": "Тестовый запрос: одностраничный лендинг по выдуманному ТЗ ниже.",
+  "project_path": "/app/sites/lipovy-demo-2026",
+  "repo_name": "lipovy-demo-2026",
+  "site_target": "desktop",
+  "json_data": {
+    "guideline": "Минималистично: светлый фон, один акцентный цвет, крупные заголовки.",
+    "business_requirements": "Выдуманная студия «Пиксельный сад»: услуги веб-дизайна, 3 карточки услуг, форма контакта (email), футер с копирайтом.",
+    "user_preferences": { "language": "ru" }
+  },
+  "requirements": { "creative_freedom": "high" }
+}

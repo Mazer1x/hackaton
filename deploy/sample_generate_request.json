@@ -1,0 +1,16 @@
+{
+  "prompt": "Собери одностраничный лендинг по ТЗ из json_data. Используй реальные тексты из business_requirements.",
+  "project_path": "/app/sites/hackaton-demo-cafe",
+  "repo_name": "hackaton-demo-cafe",
+  "site_target": "desktop",
+  "json_data": {
+    "guideline": "Визуал: тёмный фон (#0f0f0f), янтарные акценты (#d97706), крупная типографика, без стокового «AI slop».",
+    "business_requirements": "Сайт кофейни «Утренний туман». Секции: герой с заголовком и CTA; блок меню из 4 напитков с ценами; контакты и часы работы. Тон дружелюбный, короткие фразы.",
+    "user_preferences": {
+      "language": "ru"
+    }
+  },
+  "requirements": {
+    "creative_freedom": "high"
+  }
+}

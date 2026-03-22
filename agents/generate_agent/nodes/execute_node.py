@@ -93,10 +93,18 @@ def _get_execute_llm():
     return get_chat_llm(model=model, temperature=0.85, parallel_tool_calls=False)
 
 
-_execute_tools = get_execute_tools_write_only()
-_execute_tools_by_name = {t.name: t for t in _execute_tools}
-_execute_llm = _get_execute_llm()
-_execute_llm_with_tools = _execute_llm.bind_tools(_execute_tools, tool_choice="auto")
+_execute_tools = None
+_execute_tools_by_name = None
+_execute_llm_with_tools = None
+
+
+def _get_execute_llm_with_tools():
+    global _execute_tools, _execute_tools_by_name, _execute_llm_with_tools
+    if _execute_llm_with_tools is None:
+        _execute_tools = get_execute_tools_write_only()
+        _execute_tools_by_name = {t.name: t for t in _execute_tools}
+        _execute_llm_with_tools = _get_execute_llm().bind_tools(_execute_tools, tool_choice="auto")
+    return _execute_llm_with_tools, _execute_tools, _execute_tools_by_name
 
 
 def _normalize_path(p: str) -> str:
@@ -139,12 +147,13 @@ def _run_execute_tools(
     allowed_write_path: str | None = None,
 ) -> list[ToolMessage]:
     """Run execute-phase tools. Only one file per step: write_file_in_site allowed only for allowed_write_path."""
+    _, _, tools_by_name = _get_execute_llm_with_tools()
     result_messages = []
     for tc in tool_calls:
         name = tc.get("name")
         args = tc.get("args") or {}
         tid = tc.get("id") or ""
-        tool = _execute_tools_by_name.get(name)
+        tool = tools_by_name.get(name)
         if not tool:
             content = f"Tool '{name}' not found."
             result_messages.append(ToolMessage(content=content, tool_call_id=tid))
@@ -291,8 +300,9 @@ Use PROJECT STEP (ТЗ from reasoning) + CONTENT BRIEF + DESIGN BRIEF + DESIGN C
         if allowed_path and not allowed_path.startswith("src/"):
             allowed_path = "src/" + allowed_path
 
+    exec_llm, _, _ = _get_execute_llm_with_tools()
     new_messages: list = []
-    response = _execute_llm_with_tools.invoke(messages)
+    response = exec_llm.invoke(messages)
     new_messages.append(response)
     if getattr(response, "tool_calls", None):
         tool_results = _run_execute_tools(
@@ -313,7 +323,7 @@ Use PROJECT STEP (ТЗ from reasoning) + CONTENT BRIEF + DESIGN BRIEF + DESIGN C
                 f"EXECUTE_LLM nudge invoke: total_chars={nudge_total} (msgs_count={len(nudge_msgs)})",
                 flush=True,
             )
-            response2 = _execute_llm_with_tools.invoke(nudge_msgs)
+            response2 = exec_llm.invoke(nudge_msgs)
             new_messages.append(response2)
             if getattr(response2, "tool_calls", None):
                 tool_results = _run_execute_tools(

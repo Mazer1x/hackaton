@@ -120,11 +120,16 @@ def _get_action_llm():
     return get_chat_llm(model=model, temperature=0.85, parallel_tool_calls=False)
 
 
-# Initialize tools
-_tools = get_base_tools()
+_action_tools = None
+_action_llm_with_tools = None
 
-_action_llm = _get_action_llm()
-_action_llm_with_tools = _action_llm.bind_tools(_tools, tool_choice="auto")
+
+def _get_action_llm_with_tools():
+    global _action_tools, _action_llm_with_tools
+    if _action_llm_with_tools is None:
+        _action_tools = get_base_tools()
+        _action_llm_with_tools = _get_action_llm().bind_tools(_action_tools, tool_choice="auto")
+    return _action_llm_with_tools, _action_tools
 
 
 def _action_node(state: GenerateAgentState) -> dict:
@@ -319,7 +324,8 @@ Apply the above in every create_file: named font, bold colors, distinctive eleme
         ]
     messages = normalize_messages_for_api(messages)
 
-    response = _action_llm_with_tools.invoke(messages)
+    llm_with_tools, _ = _get_action_llm_with_tools()
+    response = llm_with_tools.invoke(messages)
     
     return {
         "messages": [response]
