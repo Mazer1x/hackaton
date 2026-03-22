@@ -80,7 +80,7 @@ def _ensure_git_repo(project_path: str) -> Tuple[bool, str]:
 
 def _repo_remote(repo_name: str) -> str:
     # Pattern: sites/{name}/1.git — post-receive expects login/number structure
-    return f"git@45.90.35.151:sites/{repo_name}/1.git"
+    return f"git@178.72.171.144:sites/{repo_name}/1.git"
 
 
 def _parse_deploy_url(output: str) -> str | None:
