@@ -210,16 +210,22 @@ def analyze_project_structure(
         
         project_analysis["src_structure"] = src_structure
     
-    # Check if Tailwind is installed (astro add tailwind creates tailwind.config.mjs and adds @astrojs/tailwind)
+    # Check if Tailwind is installed (v3: tailwind.config.mjs; v4: @tailwindcss/vite in package.json or astro.config.mjs)
     has_tailwind = key_files["tailwind.config.mjs"]
     if not has_tailwind and key_files["package.json"]:
         try:
-            import json
+            import json as _json
             pkg_path = path / "package.json"
             if pkg_path.exists():
-                pkg = json.loads(pkg_path.read_text())
+                pkg = _json.loads(pkg_path.read_text())
                 deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
-                has_tailwind = "@astrojs/tailwind" in deps or "tailwindcss" in deps
+                has_tailwind = "@astrojs/tailwind" in deps or "tailwindcss" in deps or "@tailwindcss/vite" in deps
+        except Exception:
+            pass
+    if not has_tailwind and key_files["astro.config.mjs"]:
+        try:
+            cfg_text = (path / "astro.config.mjs").read_text()
+            has_tailwind = "@tailwindcss/vite" in cfg_text
         except Exception:
             pass
 
