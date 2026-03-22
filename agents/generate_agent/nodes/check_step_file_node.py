@@ -5,6 +5,7 @@ Checks if the target file already exists on disk. Used to skip execute and re-an
 """
 from pathlib import Path
 
+from agents.generate_agent.path_case import file_exists_case_insensitive
 from agents.generate_agent.state import GenerateAgentState
 
 
@@ -33,8 +34,7 @@ def _check_step_file_node(state: GenerateAgentState) -> dict:
             "file_already_created_path": None,
         }
 
-    full = Path(project_path) / file_path
-    exists = full.is_file()
+    exists = file_exists_case_insensitive(Path(project_path), file_path)
 
     if exists:
         print(f"CHECK_STEP_FILE: file already exists, skip execute → analyze → reasoning: {file_path}")

@@ -109,13 +109,22 @@ def _resolve_project_path(state: GenerateAgentState) -> str:
 
 
 def _resolve_repo_name(state: GenerateAgentState, project_path: str) -> str:
-    """Имя репозитория на automatoria (sites/{repo}.git) — как в deploy_git_node."""
+    """Имя репозитория на automatoria (sites/{repo}.git) — как в deploy_git_node.
+
+    Имя папки project_path — источник истины для base и remote: если в state задан другой
+    repo_name, берём имя папки (иначе Astro пишет base: '/standing', а файлы в .../site).
+    """
+    folder = Path(project_path).name
     name = (state.get("repo_name") or "").strip()
     if not name and isinstance(state.get("input"), dict):
-        name = (state.get("input") or {}).get("repo_name") or ""
-        name = str(name).strip()
+        name = str((state.get("input") or {}).get("repo_name") or "").strip()
     if not name:
-        name = Path(project_path).name
+        return folder
+    if name != folder:
+        print(
+            f"Init: repo_name={name!r} != project folder {folder!r} — using folder name for base & git remote"
+        )
+        return folder
     return name
 
 

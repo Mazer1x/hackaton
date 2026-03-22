@@ -6,9 +6,19 @@ from langgraph.prebuilt import ToolNode
 
 from agents.generate_agent.spec.nodes.prepare_spec_input import prepare_spec_input
 from agents.generate_agent.spec.nodes.page_briefs_node import page_briefs_node
-from agents.generate_agent.spec.nodes.llm_design_requirements import llm_design_requirements
+from agents.generate_agent.spec.nodes.spec_finalize_node import spec_finalize_node
 from agents.generate_agent.spec.nodes.unsplash_search_node import unsplash_search
 from agents.generate_agent.nodes.init_project_node import _init_project_node
+from agents.generate_agent.nodes.extract_user_design_node import (
+    extract_user_design_preferences_node,
+    route_after_extract,
+)
+from agents.generate_agent.nodes.reference_design_nodes import (
+    delete_reference_screenshots_node,
+    run_reference_screenshots_node,
+    upload_reference_screenshots_node,
+    synthesize_reference_design_node,
+)
 from agents.generate_agent.nodes.analyze_project_node import _analyze_project_node
 from agents.generate_agent.nodes.reasoning_node import _reasoning_node
 from agents.generate_agent.nodes.gather_context_node import _gather_context_node
@@ -36,44 +46,48 @@ load_dotenv(dotenv_path=env_path)
 
 
 print("Building MULTI-MODEL agent graph...")
-print("   Fork: init_project || prepare_spec_input → page_briefs → llm_design → unsplash → sync → analyze → …")
-
-
-def _fork_pass(state: GenerateAgentState) -> dict:
-    """Pass-through for fork: run init and spec pipeline in parallel."""
-    return {}
-
-
-def _sync_join(state: GenerateAgentState) -> dict:
-    """Join: no state change, used only for routing to analyze when both branches are done."""
-    return {}
+print(
+    "   init_project → extract_user_design → run_reference_screenshots → upload → delete_screenshots → "
+    "synthesize_reference_design (если нужен reference и ещё нет палитры) ИЛИ сразу prepare_spec_input → …"
+)
 
 
 # Build graph for multi-model agent
 builder = StateGraph(GenerateAgentState)
 
-# Fork: from start run init_project and spec pipeline in parallel
-builder.add_node("fork", _fork_pass)
+builder.add_node("extract_user_design", extract_user_design_preferences_node)
 builder.add_node("prepare_spec_input", prepare_spec_input)
 builder.add_node("page_briefs", page_briefs_node)
-builder.add_node("llm_design_requirements", llm_design_requirements)
+builder.add_node("spec_finalize", spec_finalize_node)
 builder.add_node("unsplash_search", unsplash_search)
 builder.add_node("init_project", _init_project_node)
-builder.add_node("sync", _sync_join)
+builder.add_node("run_reference_screenshots", run_reference_screenshots_node)
+builder.add_node("upload_reference_screenshots", upload_reference_screenshots_node)
+builder.add_node("delete_screenshots", delete_reference_screenshots_node)
+builder.add_node("synthesize_reference_design", synthesize_reference_design_node)
 
-builder.set_entry_point("fork")
-builder.add_edge("fork", "init_project")
-builder.add_edge("fork", "prepare_spec_input")
+builder.set_entry_point("init_project")
+builder.add_edge("init_project", "extract_user_design")
+builder.add_conditional_edges(
+    "extract_user_design",
+    route_after_extract,
+    {
+        "run_reference_screenshots": "run_reference_screenshots",
+        "prepare_spec_input": "prepare_spec_input",
+    },
+)
+builder.add_edge("run_reference_screenshots", "upload_reference_screenshots")
+builder.add_edge("upload_reference_screenshots", "delete_screenshots")
+builder.add_edge("delete_screenshots", "synthesize_reference_design")
+builder.add_edge("synthesize_reference_design", "prepare_spec_input")
 
-# Spec pipeline: prepare_spec_input → page_briefs (Phase 1 per-page ТЗ) → llm_design_requirements → unsplash_search
+# Spec pipeline: prepare_spec_input → page_briefs → spec_finalize → unsplash_search
 builder.add_edge("prepare_spec_input", "page_briefs")
-builder.add_edge("page_briefs", "llm_design_requirements")
-builder.add_edge("llm_design_requirements", "unsplash_search")
+builder.add_edge("page_briefs", "spec_finalize")
+builder.add_edge("spec_finalize", "unsplash_search")
 
-# Both branches converge to sync; sync → analyze → reasoning (page scope is inside analyze)
-builder.add_edge("init_project", "sync")
-builder.add_edge("unsplash_search", "sync")
 builder.add_node("analyze", _analyze_project_node)
+builder.add_edge("unsplash_search", "analyze")
 builder.add_node("reasoning", _reasoning_node)
 builder.add_node("check_step_file", _check_step_file_node)
 builder.add_node("gather_context", _gather_context_node)
@@ -82,11 +96,6 @@ builder.add_node("prepare_context", _prepare_context_node)
 builder.add_node("summarize_design_for_step", _summarize_design_for_step_node)
 builder.add_node("execute", _execute_node)
 
-builder.add_conditional_edges(
-    "sync",
-    lambda s: "analyze" if (s.get("_init_done") and s.get("_spec_done")) else "sync",
-    {"analyze": "analyze", "sync": "sync"},
-)
 builder.add_edge("analyze", "reasoning")
 
 # Reasoning → check_step_file (or end if complete)

@@ -38,7 +38,9 @@ class ScreenshotAnalysisState(TypedDict, total=False):
     site_target: Optional[str]
     json_data: Optional[dict]
     project_spec: Optional[dict]
+    page_briefs: Optional[dict]
     generation_plan: Optional[list]
+    design_tokens: Optional[dict]
     validation_result: Optional[dict]
 
 

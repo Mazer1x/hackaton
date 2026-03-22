@@ -10,6 +10,7 @@ from agents.validate_agent.nodes.fix_site_react_node import fix_site_react_node
 from agents.validate_agent.nodes.should_fix_site import should_fix_site
 from agents.validate_agent.nodes.git_commit_push_node import git_commit_push_node
 from agents.validate_agent.nodes.delete_screenshots_node import delete_screenshots_node
+from agents.validate_agent.nodes.normalize_validate_input_node import normalize_validate_input_node
 
 env_path = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -19,13 +20,15 @@ print("Building validate_agent graph...")
 
 builder = StateGraph(ValidateAgentState)
 
+builder.add_node("normalize_validate_input", normalize_validate_input_node)
 builder.add_node("deploy", invoke_deploy_graph_node)
 builder.add_node("analyze_screenshots", invoke_screenshot_analysis_node)
 builder.add_node("fix_site_react", fix_site_react_node)
 builder.add_node("git_commit_push", git_commit_push_node)
 builder.add_node("delete_screenshots", delete_screenshots_node)
 
-builder.set_entry_point("deploy")
+builder.set_entry_point("normalize_validate_input")
+builder.add_edge("normalize_validate_input", "deploy")
 builder.add_edge("deploy", "analyze_screenshots")
 builder.add_conditional_edges(
     "analyze_screenshots",
@@ -39,4 +42,8 @@ builder.add_edge("delete_screenshots", "analyze_screenshots")
 graph = builder.compile()
 
 print("validate_agent graph compiled successfully!")
-print("   Flow: deploy (subgraph) → analyze_screenshots → [if errors] fix_site_react → git_commit_push → delete_screenshots → analyze_screenshots (заново)... → END")
+print(
+    "   Flow: normalize_validate_input (bundle → json_data) → deploy (subgraph) → "
+    "analyze_screenshots → [if errors] fix_site_react → git_commit_push → delete_screenshots → "
+    "analyze_screenshots (заново)... → END"
+)

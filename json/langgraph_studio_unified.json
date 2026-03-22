@@ -1,0 +1,24 @@
+{
+  "messages": [
+    {
+      "type": "human",
+      "content": "Unified: generate → handoff_to_validate → validate. Генерация идёт в каталог project_path (пустой путь → по умолчанию папка `site` в корне репо). Имя репозитория/git/base берётся из имени этой папки; если в JSON был другой repo_name — init_project выравнивает под папку. deploy_url/site_url — публичный URL после выката."
+    }
+  ],
+  "json_data": {
+    "design_preferences": "",
+    "design_reference_url": "https://mail.ru/",
+    "business_requirements": "Лендинг мобильного сервиса «Личный дневник трат»: одна страница — герой с CTA, три преимущества, простая форма подписки на бета. Тон дружелюбный, без финансовых обещаний.",
+    "guideline": "Контент и тон: вымышленный продукт, без чужих брендов. Визуал: чистый интерфейс, много воздуха, акцентные кнопки; контраст текста по WCAG.",
+    "user_preferences": {},
+    "site_target": "mobile"
+  },
+  "site_target": "mobile",
+  "project_path": "/home/mazer1x/Documents/Coding/AutoAi1/site",
+  "repo_name": "site",
+  "site_url": "https://automatoria.ru/site/",
+  "deploy_url": "https://automatoria.ru/site/",
+  "deploy_log": "",
+  "iteration_count": 0,
+  "files_created": []
+}

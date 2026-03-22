@@ -3,6 +3,7 @@ Check plan node: physical check (no AI) — which files from generation_plan exi
 """
 from pathlib import Path
 
+from agents.generate_agent.path_case import file_exists_case_insensitive
 from agents.generate_agent.state import GenerateAgentState
 from agents.generate_agent.nodes.agent_node import get_project_path
 
@@ -27,9 +28,8 @@ def check_plan_node(state: GenerateAgentState) -> dict:
     root = Path(project_path)
     plan_status = {}
     for rel in plan:
-        full = (root / rel).resolve()
         try:
-            plan_status[rel] = full.is_file()
+            plan_status[rel] = file_exists_case_insensitive(root, rel)
         except Exception:
             plan_status[rel] = False
     done = sum(1 for v in plan_status.values() if v)

@@ -7,7 +7,8 @@
     "unified": "./agents/validate_agent/unified_graph.py:graph",
     "rag_graph": "./agents/rag_graph/main.py:graph",
     "screenshot_analysis": "./agents/validate_agent/screenshot_analysis_graph.py:screenshot_analysis_graph",
-    "deploy": "./agents/validate_agent/deploy_graph.py:deploy_graph"
+    "deploy": "./agents/validate_agent/deploy_graph.py:deploy_graph",
+    "guideline_from_site": "./agents/validate_agent/guideline_from_site_graph.py:graph"
   },
   "env": ".env"
 }

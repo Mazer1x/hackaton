@@ -7,13 +7,17 @@ API: POST http://127.0.0.1:5051/api/screenshots с полем file=@path.
 """
 import asyncio
 import json
+import os
 from pathlib import Path
 
 from agents.validate_agent.state import ValidateAgentState
 from agents.validate_agent.utils.screenshot_groups import group_screenshot_paths_by_page
 
-# Базовый URL API загрузки скриншотов (можно вынести в .env)
-UPLOAD_SCREENSHOTS_URL = "http://127.0.0.1:5051/api/screenshots"
+# Ответ API — публичные URL (например media.automatoria.ru)
+UPLOAD_SCREENSHOTS_URL = os.getenv(
+    "SCREENSHOT_UPLOAD_URL",
+    "http://127.0.0.1:5051/api/screenshots",
+)
 
 
 def _upload_one(path: str) -> tuple[str | None, str | None]:

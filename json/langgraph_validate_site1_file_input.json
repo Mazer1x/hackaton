@@ -1,6 +1,0 @@
-{
-  "messages": [{"type": "human", "content": "Снять скрины из папки site1 (собранный dist)"}],
-  "project_path": "/home/mazer1x/Documents/Coding/AutoAi/site1",
-  "headless": false,
-  "screenshot_dir": "/home/mazer1x/Documents/Coding/AutoAi/site1/screenshots"
-}

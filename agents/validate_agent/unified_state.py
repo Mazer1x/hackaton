@@ -28,6 +28,15 @@ class UnifiedState(TypedDict, total=False):
     project_spec: Optional[dict]
     requirements: Optional[dict]
     design_tokens: Optional[dict]
+    # Reference site (generate: run_reference_screenshots → … → synthesize_reference_design)
+    design_reference_url: Optional[str]
+    reference_screenshot_dir: Optional[str]
+    reference_screenshot_paths: Optional[list[str]]
+    reference_screenshot_urls: Optional[list[str]]
+    reference_design_message: Optional[str]
+    reference_design_source: Optional[str]
+    reference_design_error: Optional[str]
+    reference_design_raw: Optional[str]
     session_export: Optional[dict]
     site_architecture: Optional[dict]
     site_target: Optional[str]
@@ -65,6 +74,13 @@ class UnifiedState(TypedDict, total=False):
 
     validation_result: Optional[dict]
     edit_research_notes: Optional[str]
+
+    # guideline_from_site subgraph
+    _skip_guideline_synthesis: Optional[bool]
+    guideline_source: Optional[str]
+    guideline_synthesis_error: Optional[str]
+    guideline_synthesis_raw: Optional[str]
+
     screenshot_dir: Optional[str]
     screenshot_paths: list[str]
     screenshot_message: Optional[str]

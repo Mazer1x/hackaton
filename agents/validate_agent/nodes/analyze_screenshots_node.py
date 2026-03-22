@@ -13,7 +13,10 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from agents.generate_agent.llm.chat_factory import get_chat_llm
 from agents.validate_agent.state import ValidateAgentState
 from agents.validate_agent.nodes.should_fix_or_edit_site import last_human_text
-from agents.validate_agent.utils.screenshot_groups import page_batches_for_vision
+from agents.validate_agent.utils.screenshot_groups import (
+    page_batches_for_vision,
+    resolve_page_id_for_screenshot_group,
+)
 
 # Модель с поддержкой зрения. Задаётся в .env: VALIDATE_VISION_MODEL (иначе OPENROUTER_MODEL, иначе дефолт).
 VISION_MODEL_ENV = "VALIDATE_VISION_MODEL"
@@ -63,6 +66,20 @@ def _build_context_from_state(state: ValidateAgentState) -> str:
                 parts.append(f"Ожидаемый стиль: {design['style']}")
             if design.get("typography"):
                 parts.append(f"Типографика: {design['typography']}")
+        gh = json_data.get("guideline")
+        if isinstance(gh, str) and gh.strip():
+            t = gh.strip()
+            cap = 4000
+            parts.append(
+                f"Гайдлайн (стиль/контент): {t[:cap]}{'…' if len(t) > cap else ''}"
+            )
+        br = json_data.get("business_requirements")
+        if isinstance(br, str) and br.strip():
+            t = br.strip()
+            cap = 2000
+            parts.append(
+                f"Требования / ТЗ (фрагмент): {t[:cap]}{'…' if len(t) > cap else ''}"
+            )
     project_spec = state.get("project_spec") or {}
     if project_spec:
         brief = project_spec.get("content_brief") or project_spec.get("short_summary")
@@ -71,6 +88,48 @@ def _build_context_from_state(state: ValidateAgentState) -> str:
     if not parts:
         return ""
     return "\n\nКонтекст для проверки скринов:\n" + "\n".join(f"- {p}" for p in parts)
+
+
+def _mandatory_design_tokens_block(state: ValidateAgentState) -> str:
+    """Всегда непустая строка для промпта: JSON или явное указание, что токены не заданы."""
+    dt = state.get("design_tokens") or {}
+    if isinstance(dt, dict) and dt:
+        raw = json.dumps(dt, ensure_ascii=False, indent=2)
+        cap = 3500
+        return raw[:cap] + ("…" if len(raw) > cap else "")
+    return (
+        "[design_tokens в state отсутствуют или пусты — проверь согласованность по брифу страницы; "
+        "если на скрине видна палитра, не противоречит ли она описанию в page_brief.]"
+    )
+
+
+def _build_context_for_page(state: ValidateAgentState, page_label: str) -> str:
+    """
+    Для каждой группы скринов — свой контекст: page_brief[page_id], если есть маппинг метки → page_id.
+    Иначе — общий контекст (как раньше).
+    """
+    pb = state.get("page_briefs")
+    pid = resolve_page_id_for_screenshot_group(
+        page_label,
+        pb if isinstance(pb, dict) else None,
+    )
+    if pid and isinstance(pb, dict) and pid in pb:
+        parts: list[str] = []
+        user_ask = last_human_text(state)
+        if user_ask:
+            parts.append(f"Запрос пользователя: {user_ask}")
+        brief_json = json.dumps(pb[pid], ensure_ascii=False, indent=2)
+        parts.append(
+            f"Эталон для этой страницы (page_brief «{pid}»). Сверь скриншоты с брифом — секции, контент-фокус, "
+            f"компоненты, design_notes, навигация.\n{brief_json}"
+        )
+        parts.append(
+            "Общие design_tokens (обязательно: палитра и типографика на весь сайт; сверь скрин с этими токенами "
+            "и с брифом страницы):\n"
+            + _mandatory_design_tokens_block(state)
+        )
+        return "\n\nКонтекст для проверки скринов:\n" + "\n\n".join(parts)
+    return _build_context_from_state(state)
 
 
 def _build_user_content_page(
@@ -203,11 +262,11 @@ async def _analyze_screenshots_node(state: ValidateAgentState) -> dict[str, Any]
 
     model = os.getenv(VISION_MODEL_ENV) or os.getenv("OPENROUTER_MODEL") or DEFAULT_VISION_MODEL
     llm = get_chat_llm(model=model, temperature=0.2, max_tokens=2000)
-    context = _build_context_from_state(state)
 
     per_page: list[dict[str, Any]] = []
 
     for page_label, batch_urls in batches:
+        context = _build_context_for_page(state, page_label)
         if not batch_urls:
             per_page.append({
                 "page": page_label,

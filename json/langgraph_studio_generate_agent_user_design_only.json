@@ -1,0 +1,19 @@
+{
+  "messages": [
+    {
+      "type": "human",
+      "content": "Сайт по ТЗ ниже. Дизайн задаётся текстом (guideline + design_preferences); скрины с чужого сайта не нужны — не указывай design_reference_url."
+    }
+  ],
+  "json_data": {
+    "design_preferences": "Светлая тема: фон #F8FAFC, карточки белые, акцент #2563EB, текст #0F172A. Шрифт: геометрический sans (например Inter). Скругления lg, много воздуха между секциями.",
+    "business_requirements": "Одностраничный лендинг продукта «Счётчик воды»: герой, три фичи, блок доверия, форма заявки.",
+    "guideline": "Тон спокойный, без агрессивных CTA. Иконки линейные, без стоковых фото людей.",
+    "user_preferences": {},
+    "site_target": "mobile"
+  },
+  "site_target": "mobile",
+  "project_path": "",
+  "iteration_count": 0,
+  "files_created": []
+}

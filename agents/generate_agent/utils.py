@@ -2,7 +2,10 @@
 """Shared helpers for generate_agent. Extract user request from messages regardless of format."""
 
 import json
+import re
 from typing import Any, Optional
+
+from agents.generate_agent.component_naming import component_filename_from_section_key
 
 
 def format_reasoning_task(decision: dict, project_path: str) -> str:
@@ -221,25 +224,43 @@ def build_content_brief(json_data: Optional[dict], max_lines: int = 120) -> str:
     return "\n".join(lines[:max_lines]) if lines else ""
 
 
+def layout_spec_from_page_briefs(state: dict) -> dict | None:
+    """Synthetic layout_spec.sections from page_briefs.sections_outline for analyze / tooling."""
+    pb = state.get("page_briefs")
+    if not isinstance(pb, dict) or not pb:
+        return None
+    sections: list[dict] = []
+    seen: set[str] = set()
+    keys = list(pb.keys())
+    if "home" in keys:
+        keys = ["home"] + [k for k in keys if k != "home"]
+    for key in keys:
+        data = pb.get(key)
+        if not isinstance(data, dict):
+            continue
+        for name in data.get("sections_outline") or []:
+            if not isinstance(name, str):
+                continue
+            tokens = re.findall(r"[a-z0-9]+", name.lower())
+            sid = "_".join(tokens) if tokens else ""
+            if sid and sid not in seen:
+                seen.add(sid)
+                sections.append({"id": sid, "role": sid})
+    return {"sections": sections} if sections else None
+
+
 def get_site_info(state: dict) -> str:
     """
     Short site summary for reasoning/load_skills.
-    Prefer spec pipeline (canonical_spec + brand_profile), then project_spec (ТЗ), then json_data/site_info.
+    Prefer project_spec, guideline bundle (json_data), site_info, then legacy json_data fields.
     """
-    # Spec pipeline: canonical_spec + brand_profile
-    canonical = state.get("canonical_spec") or {}
-    brand = state.get("brand_profile") or {}
-    if isinstance(canonical, dict) and isinstance(brand, dict) and canonical.get("brand") and brand.get("chosen_direction"):
-        b = canonical.get("brand", {})
-        direction = brand.get("chosen_direction", {})
-        parts = [
-            b.get("name") or "",
-            (direction.get("name") or "") + ": " + (direction.get("concept") or ""),
-            "Goal: " + (canonical.get("site_goal") or "leads"),
-        ]
-        text = " | ".join(p for p in parts if p).strip()
-        if text:
-            return text[:500]
+    jd = state.get("json_data")
+    if isinstance(jd, dict):
+        gl = jd.get("guideline")
+        if isinstance(gl, str) and gl.strip():
+            one_line = " ".join(gl.strip().split())[:500]
+            if one_line:
+                return one_line
     spec = state.get("project_spec") or {}
     if isinstance(spec, dict) and spec.get("short_summary"):
         return (spec.get("short_summary") or "").strip()
@@ -251,28 +272,13 @@ def get_site_info(state: dict) -> str:
 def get_content_brief(state: dict) -> str:
     """
     Full content brief for execute/reasoning.
-    Prefer spec pipeline (canonical_spec + brand_profile), then project_spec, then json_data.
+    Prefer business_requirements (guideline bundle), project_spec, then nested json_data.
     """
-    canonical = state.get("canonical_spec") or {}
-    brand = state.get("brand_profile") or {}
-    if isinstance(canonical, dict) and isinstance(brand, dict) and canonical.get("content"):
-        lines = []
-        content = canonical.get("content", {})
-        for key in ("hero_headline_seed", "offer_text", "usp_text", "guarantees_text", "work_hours", "address"):
-            v = content.get(key)
-            if v and isinstance(v, str) and v.strip():
-                lines.append(f"{key}: {v.strip()}")
-        msgs = brand.get("messages") or {}
-        if isinstance(msgs, dict):
-            for k in ("primary", "secondary", "trust"):
-                v = msgs.get(k)
-                if v and isinstance(v, str):
-                    lines.append(f"message_{k}: {v}")
-        headlines = brand.get("hero_headlines") or []
-        if headlines:
-            lines.append("hero_headlines: " + " | ".join(str(h) for h in headlines[:5]))
-        if lines:
-            return "\n".join(lines)
+    jd = state.get("json_data")
+    if isinstance(jd, dict):
+        br = jd.get("business_requirements")
+        if isinstance(br, str) and br.strip():
+            return br.strip()[:20000]
     spec = state.get("project_spec") or {}
     if isinstance(spec, dict) and spec.get("content_brief"):
         return (spec.get("content_brief") or "").strip()
@@ -280,8 +286,14 @@ def get_content_brief(state: dict) -> str:
 
 
 def get_spec_sections(state: dict) -> list:
-    """Ordered section names. Prefer layout_spec (spec pipeline), then project_spec, then site_architecture."""
-    layout = state.get("layout_spec") or {}
+    """Ordered section names. Prefer page_briefs (home), project_spec, site_architecture."""
+    pb = state.get("page_briefs") or {}
+    home = pb.get("home") if isinstance(pb, dict) else None
+    if isinstance(home, dict):
+        so = home.get("sections_outline") or []
+        if so:
+            return [str(x) for x in so if x]
+    layout = layout_spec_from_page_briefs(state) or {}
     if isinstance(layout, dict):
         sections = layout.get("sections") or []
         if sections:
@@ -294,8 +306,8 @@ def get_spec_sections(state: dict) -> list:
 
 
 def get_spec_blocks(state: dict) -> list:
-    """Blocks (type + content) per section. Prefer layout_spec (spec pipeline), then project_spec, then site_architecture."""
-    layout = state.get("layout_spec") or {}
+    """Blocks (type + content) per section. Prefer synthetic layout from page_briefs, project_spec, site_architecture."""
+    layout = layout_spec_from_page_briefs(state) or {}
     if isinstance(layout, dict):
         sections = layout.get("sections") or []
         if sections:
@@ -305,7 +317,7 @@ def get_spec_blocks(state: dict) -> list:
                     continue
                 blocks.append({
                     "type": s.get("id") or s.get("role") or "section",
-                    "content": {"role": s.get("role"), "grid": s.get("grid"), "elements": s.get("elements", [])},
+                    "content": {"role": s.get("role"), "outline": True},
                 })
             if blocks:
                 return blocks
@@ -317,23 +329,16 @@ def get_spec_blocks(state: dict) -> list:
 
 
 def get_design_spec(state: dict) -> Optional[dict]:
-    """Design spec (palette, typography, mood, key_requirements). Prefer spec pipeline (design_tokens + typography_spec + brand_profile), then project_spec."""
+    """Design spec (palette, typography, mood). Prefer design_tokens, then project_spec.design."""
     tokens = state.get("design_tokens") or {}
-    typo = state.get("typography_spec") or {}
-    brand = state.get("brand_profile") or {}
     if isinstance(tokens, dict) and (tokens.get("palette") or tokens.get("motion")):
-        direction = (brand or {}).get("chosen_direction") or {}
         palette = tokens.get("palette") or {}
-        primary_font = (typo.get("primary") or {}).get("family") if isinstance(typo, dict) else None
-        secondary_font = (typo.get("secondary") or {}).get("family") if isinstance(typo, dict) else None
-        adj = direction.get("visual_adjectives") or []
-        mood = (direction.get("concept") or "") + "; " + ", ".join(str(x) for x in adj)
-        key_requirements = list(adj) + [tokens.get("bold_design_move") or ""]
+        key_requirements = [tokens.get("bold_design_move") or ""]
         key_requirements = [str(r) for r in key_requirements if r]
         return {
             "palette": {k: v.get("hex") if isinstance(v, dict) else str(v) for k, v in palette.items()} if isinstance(palette, dict) else {},
-            "typography": f"Primary: {primary_font}; Secondary: {secondary_font}" if (primary_font or secondary_font) else "",
-            "mood": mood.strip("; "),
+            "typography": "",
+            "mood": str(tokens.get("bold_design_move") or ""),
             "key_requirements": key_requirements,
         }
     spec = state.get("project_spec") or {}
@@ -344,68 +349,41 @@ def get_design_spec(state: dict) -> Optional[dict]:
 
 
 def get_design_brief(state: dict) -> Optional[str]:
-    """Full design concept for execute. Prefer spec pipeline (layout_spec + design_tokens + typography_spec + background_spec + animation_spec), then project_spec.design_brief."""
-    layout = state.get("layout_spec") or {}
+    """Full design concept for execute: guideline + page_briefs + optional design_tokens + project_spec.design_brief."""
+    parts: list[str] = []
+    jd = state.get("json_data")
+    if isinstance(jd, dict):
+        gl = jd.get("guideline")
+        if isinstance(gl, str) and gl.strip():
+            parts.append("=== GUIDELINE (reference) ===\n" + gl.strip()[:12000])
+    pb = state.get("page_briefs")
+    if isinstance(pb, dict) and pb:
+        parts.append("\n=== PAGE BRIEFS ===\n" + json.dumps(pb, ensure_ascii=False, indent=2)[:16000])
     tokens = state.get("design_tokens") or {}
-    typo = state.get("typography_spec") or {}
-    background = state.get("background_spec") or {}
-    animation = state.get("animation_spec") or {}
-    asset_manifest = state.get("asset_manifest") or {}
-    if isinstance(layout, dict) and layout.get("sections"):
-        parts = ["=== SPEC PIPELINE DESIGN BRIEF ===\n"]
-        parts.append("SECTIONS (order and structure):")
-        for s in layout.get("sections", []):
-            if isinstance(s, dict):
-                parts.append(f"  - {s.get('id', s.get('role', '?'))}: grid={s.get('grid')}, role={s.get('role')}, background_layer={s.get('background_layer')}")
-        if layout.get("ascii_wireframe"):
-            parts.append("\nASCII WIREFRAME:\n" + (layout.get("ascii_wireframe") or "")[:2000])
-        if isinstance(tokens, dict) and tokens.get("palette"):
-            parts.append("\nPALETTE (use these hex in Tailwind/custom.css):")
-            for k, v in (tokens.get("palette") or {}).items():
-                if isinstance(v, dict) and v.get("hex"):
-                    parts.append(f"  {k}: {v['hex']}")
-            if tokens.get("bold_design_move"):
-                parts.append("Bold design move: " + str(tokens.get("bold_design_move")))
-            if tokens.get("motion"):
-                parts.append("Motion: " + str(tokens.get("motion")))
-        if isinstance(typo, dict) and (typo.get("primary") or typo.get("secondary")):
-            parts.append("\nTYPOGRAPHY:")
-            for key in ("primary", "secondary"):
-                f = typo.get(key)
-                if isinstance(f, dict):
-                    parts.append(f"  {key}: {f.get('family')} weights {f.get('weights', [])}")
-            if typo.get("font_import_urls"):
-                urls = typo.get("font_import_urls") or []
-                urls = list(urls.values()) if isinstance(urls, dict) else (urls if isinstance(urls, list) else [])
-                parts.append("Font import URLs: " + ", ".join(str(u) for u in urls[:5]))
-        if isinstance(background, dict) and background.get("backgrounds"):
-            parts.append("\nBACKGROUNDS per section:")
-            bgs = background.get("backgrounds") or []
-            bgs = list(bgs.values()) if isinstance(bgs, dict) else bgs
-            for bg in (bgs if isinstance(bgs, list) else [])[:15]:
-                if isinstance(bg, dict):
-                    parts.append(f"  {bg.get('section_id')}: type={bg.get('background_type')}, config={bg.get('config')}")
-        if isinstance(animation, dict) and animation.get("sections"):
-            parts.append("\nANIMATIONS (entrance, hover, parallax per section):")
-            anim_sections = animation.get("sections") or []
-            anim_sections = list(anim_sections.values()) if isinstance(anim_sections, dict) else anim_sections
-            for a in (anim_sections if isinstance(anim_sections, list) else [])[:10]:
-                if isinstance(a, dict):
-                    parts.append(f"  {a.get('section_id')}: entrance={a.get('entrance')}")
-        if isinstance(asset_manifest, dict) and (asset_manifest.get("images") or asset_manifest.get("icons")):
-            imgs = asset_manifest.get("images") or []
-            imgs = list(imgs.values()) if isinstance(imgs, dict) else (imgs if isinstance(imgs, list) else [])
-            parts.append("\nASSET IMAGES (role -> url): " + ", ".join(f"{i.get('role')}={i.get('url') or i.get('local_path')}" for i in imgs[:8] if isinstance(i, dict)))
-        parts.append("""
+    if isinstance(tokens, dict) and tokens.get("palette"):
+        parts.append("\n=== DESIGN TOKENS ===\n" + json.dumps(tokens, ensure_ascii=False, indent=2)[:4000])
+    am = state.get("asset_manifest") or {}
+    if isinstance(am, dict) and (am.get("images") or am.get("icons")):
+        imgs = am.get("images") or []
+        imgs = list(imgs.values()) if isinstance(imgs, dict) else (imgs if isinstance(imgs, list) else [])
+        parts.append(
+            "\n=== ASSET IMAGES (Unsplash) ===\n"
+            + ", ".join(
+                f"{i.get('role')}={i.get('url') or i.get('local_path')}"
+                for i in imgs[:12]
+                if isinstance(i, dict)
+            )
+        )
+    parts.append("""
 SECTION COMPOSITION — ANTI-TEMPLATE (mandatory):
-- Do NOT use the same layout for every section: avoid "centered headline + 3 equal cards" everywhere.
-- Use asymmetric grids (e.g. 60-40, one large + two small), varied section heights, and different alignments (left, right, centered) so the page has rhythm.
-- Each section must have ONE clear focal point; avoid uniform grids of identical blocks (e.g. 4 identical feature cards).
-- Vary spacing between sections; avoid identical padding/margin on every section.
-- One section should feel like the "bold move" (full-bleed, oversized type, or strong visual break).
-- The result must NOT look like a generic AI/Webflow template: no hero → 3 cards → testimonials → CTA cookie-cutter.
+- Vary layout between sections; avoid identical centered blocks everywhere.
+- Each section should have one focal point; avoid generic template rhythm.
 """)
-        parts.append("\n=== END SPEC PIPELINE BRIEF ===")
+    jd_has = isinstance(jd, dict) and (jd.get("guideline") or jd.get("business_requirements"))
+    am_ok = bool(am.get("images") or am.get("icons"))
+    if jd_has or (isinstance(pb, dict) and pb) or (
+        isinstance(tokens, dict) and tokens.get("palette")
+    ) or am_ok:
         return "\n".join(parts)
     spec = state.get("project_spec") or {}
     if not isinstance(spec, dict):
@@ -414,37 +392,48 @@ SECTION COMPOSITION — ANTI-TEMPLATE (mandatory):
     return (brief or "").strip() if isinstance(brief, str) else None
 
 
+def get_site_target_layout_mandate(state: dict) -> str:
+    """
+    When site_target is mobile: mobile-first UX but layouts must scale on desktop —
+    not a narrow column floating in empty space (see RESPONSIVE rules).
+    When desktop: one-line hint. Empty if site_target unset.
+    """
+    st = (state.get("site_target") or "").strip().lower()
+    if st == "mobile":
+        return (
+            "=== SITE TARGET: mobile-first + responsive desktop (MANDATORY) ===\n"
+            "PRIMARY: Optimize for phones — narrow viewport, touch, single-column flows, "
+            "tap targets ~44px min, no hover-only actions, readable type.\n"
+            "DESKTOP / WIDE SCREENS: The site MUST NOT look like a thin “phone simulator” strip "
+            "centered with huge empty margins. Use Tailwind breakpoints (sm: md: lg: xl:):\n"
+            "- Main shell: w-full min-h-screen; expand content on md+ with max-w-6xl or max-w-7xl "
+            "mx-auto px-4 lg:px-8, OR full-bleed sections with an inner constrained container.\n"
+            "- Do NOT use only max-w-xs / max-w-sm (or one tiny max-width) for the entire page at "
+            "all breakpoints — that causes the broken empty-sides layout on laptops.\n"
+            "- Pattern: mobile = full width + padding; from md: increase max-width and spacing; "
+            "Hero/blocks can be full-bleed background with inner max-w-* for text.\n"
+            "=== END SITE TARGET ===\n"
+        )
+    if st == "desktop":
+        return (
+            "=== SITE TARGET: desktop-first — wide layouts and hover; still usable when the window is narrow. ===\n"
+        )
+    return ""
+
+
 def get_spec_pipeline_mandate(state: dict) -> str:
     """
-    Short mandatory block from spec pipeline: component order, palette, CTA, typography.
-    Use this in reasoning and execute so generation strictly follows the spec JSON.
-    Returns empty string when no spec pipeline data.
+    Mandatory block from page_briefs + design_tokens: component order, palette, site target.
+    Returns empty string when no page_briefs sections.
     """
-    layout = state.get("layout_spec") or {}
+    layout = layout_spec_from_page_briefs(state) or {}
     tokens = state.get("design_tokens") or {}
-    typo = state.get("typography_spec") or {}
-    canonical = state.get("canonical_spec") or {}
     if not isinstance(layout, dict) or not layout.get("sections"):
         return ""
 
-    parts = ["=== SPEC PIPELINE (MANDATORY — use this for generation) ==="]
+    parts = ["=== SITE SPEC (MANDATORY — use this for generation) ==="]
+    # site_target narrative lives in get_site_target_layout_mandate (execute/reasoning prepend it).
 
-    st = state.get("site_target")
-    if st is None and isinstance(canonical, dict):
-        prefs = canonical.get("preferences") or {}
-        if isinstance(prefs, dict):
-            st = prefs.get("site_target")
-    if st == "mobile":
-        parts.append(
-            "SITE TARGET: mobile-first — optimize for narrow viewports and touch; single-column flow, "
-            "no hover-only interactions, comfortable tap targets (~44px min), readable type."
-        )
-    elif st == "desktop":
-        parts.append(
-            "SITE TARGET: desktop-first — optimize for wide viewports; multi-column layouts and hover affordances allowed."
-        )
-
-    # Component order: section id -> ComponentName.astro
     sections = layout.get("sections", [])
     comp_names = []
     for s in sections:
@@ -453,21 +442,21 @@ def get_spec_pipeline_mandate(state: dict) -> str:
         sid = (s.get("id") or s.get("role") or "section").strip()
         if not sid:
             continue
-        # hero -> Hero.astro, features -> Features.astro, testimonials -> Testimonials.astro
-        name = sid.replace("_", " ").title().replace(" ", "") + ".astro"
-        comp_names.append(name)
+        comp_names.append(component_filename_from_section_key(sid))
     if comp_names:
         parts.append("COMPONENT ORDER (create .astro files in this order): " + ", ".join(comp_names))
         parts.append("In index.astro import and render home sections in this order (inner pages may use a subset).")
-        pages_ids = canonical.get("pages") if isinstance(canonical, dict) else []
-        if isinstance(pages_ids, list) and len(pages_ids) > 1:
+        pb = state.get("page_briefs") or {}
+        if isinstance(pb, dict) and len(pb) > 1:
             parts.append(
                 "MULTI-PAGE: create every route in generation_plan — index.astro for home plus src/pages/<slug>.astro "
                 "for other ids; BaseLayout must include navigation to all routes."
             )
-        parts.append("Section layout: use asymmetric grids and varied composition per section — avoid identical centered blocks; one focal point per section.")
+        parts.append(
+            "Section layout: use asymmetric grids and varied composition per section — avoid identical centered blocks; "
+            "one focal point per section."
+        )
 
-    # Palette
     if isinstance(tokens, dict) and tokens.get("palette"):
         palette = tokens.get("palette", {})
         hexes = []
@@ -477,44 +466,19 @@ def get_spec_pipeline_mandate(state: dict) -> str:
         if hexes:
             parts.append("PALETTE (use in Tailwind/custom.css :root or classes): " + ", ".join(hexes))
 
-    # Primary CTA
-    if isinstance(canonical, dict) and canonical.get("primary_cta"):
-        cta = canonical["primary_cta"]
-        if isinstance(cta, dict):
-            label = cta.get("label") or "Связаться"
-            link = cta.get("link") or "#contact-form"
-            action = cta.get("action") or "form"
-            parts.append(f"PRIMARY CTA: label=\"{label}\", link=\"{link}\", action={action}")
-
-    # Typography
-    if isinstance(typo, dict) and (typo.get("primary") or typo.get("secondary")):
-        p = (typo.get("primary") or {}).get("family") if isinstance(typo.get("primary"), dict) else None
-        s = (typo.get("secondary") or {}).get("family") if isinstance(typo.get("secondary"), dict) else None
-        if p or s:
-            parts.append("TYPOGRAPHY: heading=" + (p or "—") + ", body=" + (s or "—"))
-        urls = typo.get("font_import_urls") or []
-        if urls:
-            parts.append("Font import URLs (add to layout head): " + "; ".join(urls[:3]))
-
-    parts.append("=== END SPEC PIPELINE MANDATE ===\n")
+    parts.append("=== END SITE SPEC MANDATE ===\n")
     return "\n".join(parts)
 
 
 def format_page_brief_for_path(state: dict, file_path: str) -> str:
-    """
-    Phase 1 per-page brief (page_briefs) for this file path, or empty.
-    Used for src/pages/*.astro when page_briefs_node ran before llm_design_requirements.
-    """
+    """Per-page brief from page_briefs for this src/pages/*.astro path."""
     from agents.generate_agent.spec.utils.site_pages import src_path_to_page_id
 
     pb = state.get("page_briefs") or {}
-    canonical = state.get("canonical_spec") or {}
     if not isinstance(pb, dict) or not pb:
         return ""
-    ids = canonical.get("pages") if isinstance(canonical.get("pages"), list) else []
-    if not ids:
-        return ""
-    pid = src_path_to_page_id(file_path, [str(x) for x in ids])
+    ids = [str(k) for k in pb.keys()]
+    pid = src_path_to_page_id(file_path, ids)
     if not pid or pid not in pb:
         return ""
     return json.dumps(pb[pid], ensure_ascii=False, indent=2)

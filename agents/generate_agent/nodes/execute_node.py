@@ -14,6 +14,7 @@ from agents.generate_agent.utils import (
     get_spec_blocks,
     get_design_spec,
     get_design_brief,
+    get_site_target_layout_mandate,
     get_spec_pipeline_mandate,
     format_reasoning_task,
     format_page_brief_for_path,
@@ -185,8 +186,13 @@ def _execute_node(state: GenerateAgentState) -> dict:
     content_brief = get_content_brief(state)
     arch_blocks = get_spec_blocks(state)
     design_spec = get_design_spec(state)
+    site_target_block = get_site_target_layout_mandate(state)
     spec_mandate = get_spec_pipeline_mandate(state)
-    content_block = (spec_mandate + "\n") if spec_mandate else ""
+    content_block = ""
+    if site_target_block:
+        content_block += site_target_block + "\n"
+    if spec_mandate:
+        content_block += spec_mandate + "\n"
     ppc = (state.get("page_plan_context") or "").strip()
     if ppc:
         content_block += ppc + "\n\n"

@@ -13,7 +13,7 @@ OUTPUT_DIR = ROOT_DIR / "output"
 TEMPLATES_DIR = ROOT_DIR / "templates"
 
 # Model tiers for spec pipeline (tools/patterns unchanged; only model id per tier)
-# concept tier → llm_design_requirements (single combined LLM call)
+# concept tier → page_briefs / guideline inference
 MODEL_TIERS: dict[str, str] = {
     "concept": "OPENROUTER_MODEL_CONCEPT",
     "code": "OPENROUTER_MODEL_CODE",

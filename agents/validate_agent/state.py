@@ -23,6 +23,7 @@ class ValidateAgentState(TypedDict):
     headless: Optional[bool]  # false = показывать браузер при скриншотах (по умолчанию true)
     json_data: Optional[dict]
     project_spec: Optional[dict]
+    page_briefs: Optional[dict]  # page_id → бриф; vision сверяет каждую страницу со своим брифом
     generation_plan: Optional[list[str]]  # как в generate_agent — для маршрутов при отсутствии src/pages на диске
 
     # ТЗ / spec pipeline (тот же вид, что в generate_agent — чтобы гнать validate тем же входным JSON)

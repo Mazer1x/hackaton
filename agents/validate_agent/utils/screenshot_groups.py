@@ -5,6 +5,45 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
+
+
+def group_key_to_page_id(group_key: str, page_ids: list[str]) -> str | None:
+    """
+    p00_home → page_id «home»; p01_about-us → «about-us» или «about_us» в списке ids.
+    """
+    if not page_ids:
+        return None
+    m = re.match(r"^p\d{2}_(.+)$", (group_key or "").strip())
+    slug = (m.group(1) if m else group_key).strip().lower()
+    slug_norm = slug.replace("-", "_")
+    for pid in page_ids:
+        raw = str(pid).strip()
+        pl = raw.lower().replace("-", "_")
+        if pl == slug_norm:
+            return raw
+    return None
+
+
+def resolve_page_id_for_screenshot_group(
+    group_key: str,
+    page_briefs: dict[str, Any] | None,
+) -> str | None:
+    """Метка группы скринов → ключ в page_briefs; для одностраничного «site»/«screenshot» — home или единственная страница."""
+    if not page_briefs or not isinstance(page_briefs, dict):
+        return None
+    ids = [str(k) for k in page_briefs.keys()]
+    pid = group_key_to_page_id(group_key, ids)
+    if pid:
+        return pid
+    g = (group_key or "").strip().lower()
+    if g in ("site", "screenshot"):
+        if len(ids) == 1:
+            return ids[0]
+        for candidate in ("home", "index", "main"):
+            if candidate in page_briefs:
+                return candidate
+    return None
 
 
 def page_group_key_from_path(path: str) -> str:

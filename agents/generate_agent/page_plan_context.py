@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from agents.generate_agent.state import GenerateAgentState
+from agents.generate_agent.path_case import file_exists_case_insensitive
 from agents.generate_agent.spec.utils.site_pages import (
     expected_page_paths,
     src_path_to_page_id,
@@ -40,7 +41,7 @@ def first_missing_plan_path(state: GenerateAgentState) -> str | None:
         p = _norm_rel(str(rel))
         if not p:
             continue
-        if not (root / p).is_file():
+        if not file_exists_case_insensitive(root, p):
             return p
     return None
 
@@ -60,9 +61,11 @@ def compute_page_plan_context_updates(
             "_page_plan_missing_before": None,
         }
 
-    canonical = state.get("canonical_spec") or {}
-    page_ids = canonical.get("pages") if isinstance(canonical.get("pages"), list) else ["home"]
-    page_ids = [str(p).strip() for p in page_ids if str(p).strip()] or ["home"]
+    pb = state.get("page_briefs") or {}
+    if isinstance(pb, dict) and pb:
+        page_ids = [str(k).strip() for k in pb if str(k).strip()]
+    else:
+        page_ids = ["home"]
 
     project_path = (state.get("project_path") or "").strip()
     page_paths_ordered = expected_page_paths(page_ids)
@@ -107,7 +110,7 @@ def compute_page_plan_context_updates(
     if root and cur_index > 0:
         for j in range(cur_index):
             rel = page_paths_ordered[j]
-            if not (root / rel).is_file():
+            if not file_exists_case_insensitive(root, rel):
                 missing_before.append(rel)
 
     lines = [

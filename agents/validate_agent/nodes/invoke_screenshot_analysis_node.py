@@ -17,7 +17,9 @@ async def invoke_screenshot_analysis_node(state: dict) -> dict:
         "site_target": state.get("site_target"),
         "json_data": state.get("json_data"),
         "project_spec": state.get("project_spec"),
+        "page_briefs": state.get("page_briefs"),
         "generation_plan": state.get("generation_plan"),
+        "design_tokens": state.get("design_tokens"),
     }
     result = await screenshot_analysis_graph.ainvoke(input_state)
     return {

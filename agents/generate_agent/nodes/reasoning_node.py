@@ -15,7 +15,17 @@ except ImportError:
     OpenAIPermissionDeniedError = Exception  # noqa: A001
 
 from agents.generate_agent.state import GenerateAgentState
-from agents.generate_agent.utils import get_user_request, get_site_info, get_content_brief, get_spec_sections, get_spec_blocks, get_design_spec, get_design_brief, get_spec_pipeline_mandate
+from agents.generate_agent.utils import (
+    get_user_request,
+    get_site_info,
+    get_content_brief,
+    get_spec_sections,
+    get_spec_blocks,
+    get_design_spec,
+    get_design_brief,
+    get_site_target_layout_mandate,
+    get_spec_pipeline_mandate,
+)
 from agents.generate_agent.llm.chat_factory import get_chat_llm
 from agents.generate_agent.llm.tools.reasoning_decision_tools import get_reasoning_decision_tools
 
@@ -182,7 +192,13 @@ PROJECT ANALYSIS:
       - pages/: {', '.join(src.get('pages', [])) or '(empty)'}
 """
     
+    site_target_block = get_site_target_layout_mandate(state)
     spec_mandate = get_spec_pipeline_mandate(state)
+    spec_combined = ""
+    if site_target_block:
+        spec_combined += site_target_block
+    if spec_mandate:
+        spec_combined += spec_mandate
     spec_note = "\nSPEC PIPELINE is active: section order and design below MUST be followed.\n" if spec_mandate else ""
     site_block = f"\nSITE (theme, use for decisions): {site_info}\n" if site_info else ""
     status = project_analysis.get("status", "unknown")
@@ -199,7 +215,7 @@ PROJECT ANALYSIS:
 *** NOTE: The file {file_already_created_path} was already present (skipped). Do NOT create it again — choose the NEXT missing file or call complete_step if the project is done. ***
 """
     context = f"""
-{spec_mandate}{spec_note}{plan_block}
+{spec_combined}{spec_note}{plan_block}
 ITERATION {iteration + 1}
 {site_block}
 USER REQUEST:

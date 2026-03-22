@@ -10,37 +10,39 @@ from typing import Dict, List
 from langchain_core.messages import AIMessage
 from langgraph.graph.message import REMOVE_ALL_MESSAGES, RemoveMessage
 
+from agents.generate_agent.component_naming import component_filename_from_section_key
+from agents.generate_agent.path_case import file_exists_case_insensitive
 from agents.generate_agent.state import GenerateAgentState
 from agents.generate_agent.page_plan_context import page_scope_updates_for_analyze
-from agents.generate_agent.utils import get_site_info
+from agents.generate_agent.utils import get_site_info, layout_spec_from_page_briefs
 from agents.generate_agent.spec.utils.generation_plan import first_missing_plan_file
 
 
 def _layout_section_to_component_filename(section: dict) -> str | None:
-    """То же имя файла, что в mandate / summarize_design: hero → Hero.astro."""
+    """То же имя файла, что в generation_plan (PascalCase из букв/цифр, без скобок и &)."""
     if not isinstance(section, dict):
         return None
     sid = (section.get("id") or section.get("role") or "").strip()
     if not sid:
         return None
-    return sid.replace("_", " ").title().replace(" ", "") + ".astro"
+    return component_filename_from_section_key(sid)
 
 
 def _missing_planned_components(src_path: Path, layout_spec: dict | None) -> list[str]:
-    """Пути src/components/X.astro из layout_spec.sections, которых ещё нет на диске."""
+    """Пути src/components/X.astro из layout_spec.sections, которых ещё нет на диске (без учёта регистра имён)."""
     if not isinstance(layout_spec, dict):
         return []
     sections = layout_spec.get("sections") or []
     if not sections:
         return []
-    comp_dir = src_path / "components"
+    project_root = src_path.parent
     missing: list[str] = []
     for s in sections:
         fn = _layout_section_to_component_filename(s)
         if not fn:
             continue
         rel = f"src/components/{fn}"
-        if not (comp_dir / fn).is_file():
+        if not file_exists_case_insensitive(project_root, rel):
             missing.append(rel)
     return missing
 
@@ -344,7 +346,7 @@ def _analyze_project_node(state: GenerateAgentState) -> dict:
     # Analyze project
     analysis = analyze_project_structure(
         project_path,
-        layout_spec=state.get("layout_spec"),
+        layout_spec=layout_spec_from_page_briefs(state),
         generation_plan=state.get("generation_plan"),
     )
     

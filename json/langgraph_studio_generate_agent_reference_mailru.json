@@ -1,0 +1,20 @@
+{
+  "messages": [
+    {
+      "type": "human",
+      "content": "Собери одностраничный лендинг на Astro по json_data ниже.\n\nПайплайн: init_project → extract_user_design (палитра из guideline/design_preferences, если LLM видит визуальный замысел) → если палитры ещё нет и задан design_reference_url — скрины сайта (1920×1080) → upload → vision → design_tokens → дальше prepare_spec, page_briefs, генерация.\n\nДля загрузки скринов на API нужен SCREENSHOT_UPLOAD_URL; сеть до mail.ru может упираться в антибот/CAPTCHA."
+    }
+  ],
+  "json_data": {
+    "design_preferences": "",
+    "design_reference_url": "https://mail.ru/",
+    "business_requirements": "Лендинг мобильного сервиса «Личный дневник трат»: одна страница — герой с CTA, три преимущества, простая форма подписки на бета. Тон дружелюбный, без финансовых обещаний.",
+    "guideline": "Контент и тон: вымышленный продукт, без чужих брендов. Визуал: чистый интерфейс, много воздуха, акцентные кнопки; светлая или тёмная тема — на усмотрение, контраст текста по WCAG. Если заполнишь design_preferences — палитра будет оттуда (или из этого текста через extract_user_design); иначе при отсутствии палитры возьмётся референс с design_reference_url.",
+    "user_preferences": {},
+    "site_target": "mobile"
+  },
+  "site_target": "mobile",
+  "project_path": "",
+  "iteration_count": 0,
+  "files_created": []
+}

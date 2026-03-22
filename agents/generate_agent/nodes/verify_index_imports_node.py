@@ -45,7 +45,14 @@ def _collect_missing_imports(index_file: Path, project_root: Path) -> list[str]:
         if key in seen:
             continue
         seen.add(key)
-        if not target.is_file():
+        resolved = target
+        if not resolved.is_file() and not resolved.suffix:
+            for ext in (".ts", ".tsx", ".js", ".mjs", ".astro"):
+                cand = resolved.with_suffix(ext)
+                if cand.is_file():
+                    resolved = cand
+                    break
+        if not resolved.is_file():
             try:
                 rel_to_root = target.relative_to(root).as_posix()
             except ValueError:

@@ -18,7 +18,10 @@ dependencies = [
     "tree-sitter",
     "psycopg[binary]>=3.1",
     "pgvector>=0.2.0",
+    "httpx>=0.27",
+    "pydantic>=2",
 ]
 
-[tool.setuptools]
-packages = ["agents", "agents.structure_agent", "agents.structure_agent.nodes", "agents.structure_agent.llm", "agents.structure_agent.utils", "agents.generate_agent", "agents.generate_agent.llm", "agents.validate_agent", "agents.validate_agent.nodes", "agents.unified_agent", "agents.rag_graph", "agents.rag_graph.nodes", "agents.rag_graph.rag", "agents.rag_graph.rag.code"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agents*"]

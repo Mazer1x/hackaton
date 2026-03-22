@@ -1,4 +1,4 @@
-"""Unsplash search node — fills asset_manifest.images from Unsplash after llm_design_requirements.
+"""Unsplash search node — fills asset_manifest.images after spec_finalize (layout from page_briefs).
 
 HTTP request is made directly in the node (no LangChain tool) so the call always runs
 in the same process and .env is loaded here to ensure UNSPLASH_ACCESS_KEY is available.
@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+
+from agents.generate_agent.utils import layout_spec_from_page_briefs
 
 # Ensure .env is loaded when this module runs (e.g. under LangGraph server)
 _env_path = Path(__file__).resolve().parents[4] / ".env"
@@ -116,11 +118,32 @@ def _sections_needing_images(layout: dict) -> list[dict]:
     return out
 
 
+def _image_keywords_from_page_briefs(state: dict) -> list[str]:
+    """Search terms from home sections_outline + design_notes (fallback generic)."""
+    pb = state.get("page_briefs") or {}
+    if not isinstance(pb, dict):
+        return []
+    out: list[str] = []
+    home = pb.get("home")
+    if isinstance(home, dict):
+        for sec in home.get("sections_outline") or []:
+            if isinstance(sec, str) and sec.strip():
+                out.append(sec.strip().lower())
+        dn = home.get("design_notes")
+        if isinstance(dn, str) and dn.strip():
+            # short phrase for Unsplash (first ~4 words)
+            words = dn.strip().split()[:4]
+            if words:
+                out.append(" ".join(words))
+    if not out:
+        out = ["modern office interior", "professional workspace", "architecture"]
+    return out
+
+
 async def unsplash_search(state: dict) -> dict:
     """Run Unsplash search per section; build asset_manifest.images (icons stay empty)."""
-    layout = state.get("layout_spec") or {}
-    brand = state.get("brand_profile") or {}
-    image_keywords = brand.get("image_keywords") or []
+    layout = layout_spec_from_page_briefs(state) or {}
+    image_keywords = _image_keywords_from_page_briefs(state)
     sections_list = layout.get("sections") or []
     sections_needing = _sections_needing_images(layout)
 

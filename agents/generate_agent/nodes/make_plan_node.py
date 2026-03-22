@@ -8,8 +8,9 @@ from pathlib import Path
 
 from langchain_core.messages import SystemMessage, HumanMessage
 
+from agents.generate_agent.component_naming import component_filename_from_section_key
 from agents.generate_agent.state import GenerateAgentState
-from agents.generate_agent.utils import get_content_brief, get_spec_sections, get_spec_blocks
+from agents.generate_agent.utils import get_content_brief, get_spec_sections, get_spec_blocks, layout_spec_from_page_briefs
 from agents.generate_agent.llm.chat_factory import get_chat_llm
 from agents.generate_agent.spec.utils.site_pages import expected_page_paths
 
@@ -34,25 +35,27 @@ Multi-page example:
 def _fallback_plan(state: GenerateAgentState) -> list[str]:
     """Rule-based fallback when LLM fails or returns invalid plan."""
     plan = ["src/styles/custom.css", "src/layouts/BaseLayout.astro"]
-    layout_spec = state.get("layout_spec") or {}
+    layout_spec = layout_spec_from_page_briefs(state) or {}
     project_spec = state.get("project_spec") or {}
     sections = layout_spec.get("sections") or project_spec.get("sections") or []
     if sections:
         seen = set()
         for sec in sections:
             raw = (sec if isinstance(sec, dict) else {}).get("id") or (sec if isinstance(sec, dict) else {}).get("role") or "section"
-            s = str(raw).strip().replace("-", " ").replace("_", " ")
-            name = "".join(w.capitalize() for w in s.split()) or "Section"
-            if name and name not in seen:
-                seen.add(name)
-                plan.append(f"src/components/{name}.astro")
+            fn = component_filename_from_section_key(str(raw))
+            if fn and fn not in seen:
+                seen.add(fn)
+                plan.append(f"src/components/{fn}")
     else:
         for name in ["Hero", "About", "Services"]:
             plan.append(f"src/components/{name}.astro")
-    canonical = state.get("canonical_spec") or {}
-    ids = canonical.get("pages") if isinstance(canonical.get("pages"), list) else None
+    pb = state.get("page_briefs") or {}
+    if isinstance(pb, dict) and pb:
+        ids = [str(k).strip() for k in pb if str(k).strip()]
+    else:
+        ids = None
     if ids:
-        for p in expected_page_paths([str(x).strip() for x in ids if str(x).strip()]):
+        for p in expected_page_paths(ids):
             if p not in plan:
                 plan.append(p)
     else:
@@ -74,10 +77,10 @@ def _validate_plan(plan: list) -> list[str]:
 
 def make_plan_node(state: GenerateAgentState) -> dict:
     """
-    LLM builds generation_plan from layout_spec / project_spec / content brief.
+    LLM builds generation_plan from page_briefs-derived sections / project_spec / content brief.
     Fallback: rule-based plan. check_plan (no AI) will then verify which files exist.
     """
-    layout_spec = state.get("layout_spec") or {}
+    layout_spec = layout_spec_from_page_briefs(state) or {}
     project_spec = state.get("project_spec") or {}
     content_brief = get_content_brief(state)
     arch_sections = get_spec_sections(state)

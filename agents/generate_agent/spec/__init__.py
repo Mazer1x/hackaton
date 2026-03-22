@@ -1,1 +1,1 @@
-# Spec pipeline: page_briefs (Phase 1 per-page ТЗ) → llm_design_requirements → unsplash_search
+# Spec pipeline: prepare_spec_input → page_briefs → spec_finalize → unsplash_search
