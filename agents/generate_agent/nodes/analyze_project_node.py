@@ -244,7 +244,7 @@ def analyze_project_structure(
         project_analysis["message"] = "Basic setup exists, need to create src/"
     else:
         # Check for important files
-        has_custom_css = "custom.css" in project_analysis["src_structure"].get("styles", [])
+        has_custom_css = len(project_analysis["src_structure"].get("styles", [])) > 0
         has_base_layout = any("Base" in f for f in project_analysis["src_structure"].get("layouts", []))
         components = project_analysis["src_structure"].get("components", [])
         has_components = len(components) >= 3  # Minimum 3 components!
