@@ -8,7 +8,9 @@ Writes astro.config.mjs with `base` from repo_name (or project folder name) so d
 like https://automatoria.ru/{repo_name}/... match internal links (see site/src/utils/withBase.ts).
 """
 import os
+import random
 import re
+import string
 import subprocess
 from pathlib import Path
 
@@ -99,13 +101,20 @@ def _run_init_commands(project_path: str) -> None:
             raise
 
 
+def _generate_site_name() -> str:
+    """8 случайных строчных английских букв для имени сайта/репозитория."""
+    return ''.join(random.choices(string.ascii_lowercase, k=8))
+
+
 def _resolve_project_path(state: GenerateAgentState) -> str:
-    """project_path из state, из state['input'] (LangGraph Studio) или get_project_path()."""
+    """project_path из state, из state['input'] (LangGraph Studio) или генерируем новый."""
     project_path = (state.get("project_path") or "").strip()
     if not project_path and isinstance(state.get("input"), dict):
         project_path = (state.get("input", {}).get("project_path") or "").strip()
     if not project_path:
-        project_path = get_project_path()
+        root = Path(get_project_path()).parent / "sites"
+        root.mkdir(exist_ok=True)
+        project_path = str(root / _generate_site_name())
     return str(Path(project_path).resolve())
 
 
