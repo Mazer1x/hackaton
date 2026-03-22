@@ -23,6 +23,7 @@ Commands (idempotent по возможности):
 
 from __future__ import annotations
 
+import random
 import subprocess
 from pathlib import Path
 from typing import Tuple
@@ -79,8 +80,9 @@ def _ensure_git_repo(project_path: str) -> Tuple[bool, str]:
 
 
 def _repo_remote(repo_name: str) -> str:
-    # Pattern: sites/{name}/1.git — post-receive expects login/number structure
-    return f"git@178.72.171.144:sites/{repo_name}/1.git"
+    # Pattern: sites/{name}/{number}.git — post-receive expects login/number structure
+    number = random.randint(1000, 9999)
+    return f"git@178.72.171.144:sites/{repo_name}/{number}.git"
 
 
 def _parse_deploy_url(output: str) -> str | None:
