@@ -21,6 +21,7 @@ from agents.generate_agent.utils import (
     normalize_messages_for_api,
 )
 from agents.generate_agent.llm.tools import get_execute_tools_write_only
+from agents.generate_agent.llm.tools.act_tools import set_current_project_path
 from agents.generate_agent.llm.chat_factory import get_chat_llm
 from agents.generate_agent.nodes.agent_node import get_frontend_design_skill
 from agents.generate_agent.spec.utils.llm_image_attachment import (
@@ -188,6 +189,9 @@ def _execute_node(state: GenerateAgentState) -> dict:
     project_path = state.get("project_path", "/path/to/site")
     loaded_skills_context = state.get("loaded_skills_context") or ""
     step_design_summary = state.get("step_design_summary") or ""
+
+    # Tell write_file_in_site where to write files for this run
+    set_current_project_path(project_path)
 
     if not decision:
         return {"messages": []}

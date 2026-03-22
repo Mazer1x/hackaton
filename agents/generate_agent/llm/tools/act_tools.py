@@ -7,9 +7,21 @@ from typing import Optional
 from langchain_core.tools import tool, BaseTool
 
 
+# Module-level override: set by execute_node/action_node before invoking tools
+_current_project_path: Optional[str] = None
+
+
+def set_current_project_path(path: str) -> None:
+    """Set the project path for write_file_in_site. Call before running execute tools."""
+    global _current_project_path
+    _current_project_path = path
+
+
 def _get_site_root() -> Path:
-    """Site directory path (same as get_project_path in agent_node). Used to restrict read/list to site/."""
-    # act_tools.py is in generate_agent/llm/tools/ → 5 levels up = repo root
+    """Site directory path. Uses project path set via set_current_project_path, else fallback to site/."""
+    if _current_project_path:
+        return Path(_current_project_path).resolve()
+    # fallback: act_tools.py is in generate_agent/llm/tools/ → 5 levels up = repo root
     root = Path(__file__).resolve().parent.parent.parent.parent.parent
     return (root / "site").resolve()
 
