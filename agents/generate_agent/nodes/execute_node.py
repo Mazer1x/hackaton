@@ -52,7 +52,7 @@ CRITICAL ASTRO RULES:
 2. Component import: import Hero from '../components/Hero.astro';
 3. Only real Tailwind classes: bg-slate-900, text-amber-50 — NOT bg-cream
 4. custom.css: PLAIN CSS only (no @apply). Tailwind in .astro HTML.
-5. Layout MUST import global.css first, then custom.css.
+5. Layout MUST import custom.css (NEVER global.css — always name the file custom.css, never global.css).
 6. Deploy-safe URLs (ANY page you generate — not only /history):
    - Site may live at https://automatoria.ru/{repo}/ (subpath). NEVER use root-absolute hrefs: href="/foo", href="/a/b".
    - For EVERY internal link (<a>, <form action> to same site, redirects to internal routes): use withBase.
