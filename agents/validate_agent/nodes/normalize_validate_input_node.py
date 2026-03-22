@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from agents.generate_agent.spec.utils.json_data_bundle_v1 import normalize_json_data
+
 
 def _pick(state: dict, key: str) -> Any:
     v = state.get(key)
@@ -53,6 +55,7 @@ async def normalize_validate_input_node(state: dict) -> dict:
             jd[key] = root_val
 
     if jd:
+        jd, _changed = normalize_json_data(jd)
         updates["json_data"] = jd
 
     st = _pick(state, "site_target") or (jd.get("site_target") if jd else None)

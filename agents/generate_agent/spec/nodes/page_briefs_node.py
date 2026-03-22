@@ -5,14 +5,40 @@ import json
 import logging
 from typing import Any
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.generate_agent.spec.utils.json_extract import LLMJsonError, extract_json
 from agents.generate_agent.spec.utils.llm import get_llm
 from agents.generate_agent.spec.utils.site_target import normalize_site_target
+from agents.generate_agent.spec.utils.llm_image_attachment import (
+    merge_bundle_image_urls,
+    human_message_text_and_images,
+)
 
 log = logging.getLogger(__name__)
+
+
+def _content_block_str(b: Any) -> str:
+    if not isinstance(b, dict):
+        return str(b)
+    if b.get("type") == "text" or "text" in b:
+        return str(b.get("text") or "")
+    if b.get("type") == "image_url":
+        iu = b.get("image_url")
+        if isinstance(iu, dict):
+            return str(iu.get("url") or "")
+        return str(iu or "")
+    return str(b)
+
+
+def _response_content_to_str(response: Any) -> str:
+    c = getattr(response, "content", None) if response is not None else None
+    if c is None:
+        return ""
+    if isinstance(c, list):
+        return " ".join(_content_block_str(b) for b in c).strip()
+    return str(c).strip()
 
 
 def _bundle_from_state(state: dict[str, Any]) -> tuple[str, str, dict[str, Any]]:
@@ -34,6 +60,7 @@ write a focused brief for exactly ONE page (identified below).
 
 Rules:
 - Respect brand, audience, and goals implied by the guideline and business requirements.
+- If the prompt includes "USER REFERENCE IMAGES" with a list of URLs, sections_outline MUST include places that show those images (e.g. Hero, Gallery, Works) and design_notes must say to embed the exact https URLs in markup.
 - sections_outline: ordered list of section names/roles for THIS page only (e.g. Hero, Timeline, FAQ). Home is usually richer; inner pages are often simpler.
 - components_hint: optional PascalCase Astro component names that might be specific to this page (can be empty).
 - nav_label: short label for the site navigation (same language as the site).
@@ -69,6 +96,7 @@ class PageList(BaseModel):
 PAGE_LIST_SYSTEM = """You are an information architect. Given the site GUIDELINE and BUSINESS_REQUIREMENTS,
 propose a minimal list of logical page ids for the site (e.g. home, about, services, contact).
 Rules:
+- If the prompt includes "USER REFERENCE IMAGES", the site must be able to show those assets (at minimum a rich "home" with gallery/works is appropriate).
 - Always include "home" as the main landing page id unless the site is strictly single-section (then still use "home").
 - Use lowercase English identifiers: home, about, pricing, contact, etc.
 - For a simple one-page site return exactly: ["home"].
@@ -92,6 +120,7 @@ async def _infer_pages(
     business_req: str,
     user_prefs: dict[str, Any],
     design_tokens_extras: str = "",
+    bundle_image_urls: list[str] | None = None,
 ) -> PageList:
     prefs_json = json.dumps(user_prefs, ensure_ascii=False, indent=2) if user_prefs else "{}"
     user = (
@@ -100,7 +129,8 @@ async def _infer_pages(
         f"{design_tokens_extras}\n\nReturn pages + site_target."
     )
     llm = get_llm(tier="concept", temperature=0.35, max_tokens=2048)
-    messages = [SystemMessage(content=PAGE_LIST_SYSTEM), HumanMessage(content=user)]
+    human = human_message_text_and_images(user, bundle_image_urls or [])
+    messages = [SystemMessage(content=PAGE_LIST_SYSTEM), human]
     llm_so = llm.with_structured_output(PageList, method="json_schema")
     try:
         out = await llm_so.ainvoke(messages)
@@ -110,7 +140,7 @@ async def _infer_pages(
         log.warning("page_briefs: infer pages structured failed (%s), fallback", exc)
     try:
         response = await llm.ainvoke(messages)
-        content = (response.content or "").strip() if hasattr(response, "content") else str(response)
+        content = _response_content_to_str(response)
         raw = extract_json(content)
         return PageList.model_validate(raw)
     except (LLMJsonError, Exception) as exc:
@@ -125,6 +155,7 @@ async def _one_page_brief(
     page_id: str,
     site_target: str,
     design_tokens_extras: str = "",
+    bundle_image_urls: list[str] | None = None,
 ) -> tuple[PageBrief | None, str | None]:
     prefs_json = json.dumps(user_prefs, ensure_ascii=False, indent=2) if user_prefs else "{}"
     detail = json.dumps(
@@ -138,7 +169,8 @@ async def _one_page_brief(
         f"{design_tokens_extras}\n\nProduce the PageBrief JSON for this page only."
     )
     llm = get_llm(tier="concept", temperature=0.55, max_tokens=4096)
-    messages = [SystemMessage(content=PAGE_BRIEF_SYSTEM), HumanMessage(content=user)]
+    human = human_message_text_and_images(user, bundle_image_urls or [])
+    messages = [SystemMessage(content=PAGE_BRIEF_SYSTEM), human]
     llm_so = llm.with_structured_output(PageBrief, method="json_schema")
     try:
         out = await llm_so.ainvoke(messages)
@@ -148,7 +180,7 @@ async def _one_page_brief(
         log.warning("page_briefs: structured failed for %s (%s), fallback", page_id, exc)
     try:
         response = await llm.ainvoke(messages)
-        content = (response.content or "").strip() if hasattr(response, "content") else str(response)
+        content = _response_content_to_str(response)
         raw = extract_json(content)
         b = PageBrief.model_validate(raw)
         return b, None
@@ -166,7 +198,9 @@ async def page_briefs_node(state: dict[str, Any]) -> dict[str, Any]:
         return {"errors": list(state.get("errors") or []) + [err]}
 
     dt_extra = _design_tokens_block(state)
-    page_list = await _infer_pages(guideline, business_req, user_prefs, dt_extra)
+    jd = state.get("json_data") or {}
+    bundle_imgs = merge_bundle_image_urls(jd if isinstance(jd, dict) else {})
+    page_list = await _infer_pages(guideline, business_req, user_prefs, dt_extra, bundle_imgs)
     page_ids = [str(p).strip() for p in page_list.pages if str(p).strip()] or ["home"]
     st_merge = normalize_site_target(page_list.site_target or state.get("site_target"))
     site_target = str(st_merge).strip().lower() if st_merge else "desktop"
@@ -176,7 +210,9 @@ async def page_briefs_node(state: dict[str, Any]) -> dict[str, Any]:
     err_list = list(state.get("errors") or [])
 
     for pid in page_ids:
-        brief, err = await _one_page_brief(guideline, business_req, user_prefs, pid, site_target, dt_extra)
+        brief, err = await _one_page_brief(
+            guideline, business_req, user_prefs, pid, site_target, dt_extra, bundle_imgs
+        )
         if brief is not None:
             data = brief.model_dump()
             data["page_id"] = pid

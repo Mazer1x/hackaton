@@ -14,6 +14,7 @@ from pathlib import Path
 
 from agents.generate_agent.state import GenerateAgentState
 from agents.generate_agent.nodes.agent_node import get_project_path
+from agents.generate_agent.spec.utils.json_data_bundle_v1 import normalize_json_data
 
 # Non-interactive env so npm/npx never prompt "Ok to proceed? (y)"
 _INIT_ENV = {**os.environ, "CI": "1", "npm_config_yes": "true"}
@@ -212,8 +213,14 @@ def _init_project_node(state: GenerateAgentState) -> dict:
     _write_astro_config_with_base(project_path, repo)
     _write_with_base_util(project_path)
 
-    return {
+    out: dict = {
         "project_path": project_path,  # resolved absolute path
         "repo_name": repo,
         "_init_done": True,
     }
+    jd = state.get("json_data")
+    if isinstance(jd, dict):
+        new_jd, changed = normalize_json_data(jd)
+        if changed:
+            out["json_data"] = new_jd
+    return out

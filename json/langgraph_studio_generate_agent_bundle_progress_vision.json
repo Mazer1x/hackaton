@@ -1,0 +1,48 @@
+{
+  "messages": [
+    {
+      "type": "human",
+      "content": "Сгенерируй одностраничный лендинг на Astro по json_data (v1 bundle): business — ТЗ, guideline — стиль и референс-картинки (vision), wishes — опционально."
+    }
+  ],
+  "json_data": {
+    "business": {
+      "text": "Лендинг портфолио художника: герой с именем, галерея работ (сетка), блок «обо мне», контакт (email + соцсети). Только статика, без бэкенда.",
+      "files": []
+    },
+    "guideline": {
+      "text": "Визуал: монохром, манга/халфтон, высокий контраст чёрный–белый, атмосфера спокойная. UI минималистичный, много воздуха, крупная типографика для заголовков.",
+      "files": [
+        {
+          "url": "https://media.progressusbot.ru/file/c0c621b5d8ed4d3eb1c261a0b46e14a4",
+          "fileName": " -2.jpg",
+          "content": "Референс: портрет в халфтоне, разделённые волосы, спокойное выражение — для палитры и настроения."
+        },
+        {
+          "url": "https://media.progressusbot.ru/file/bd2642df7e4249fdb203d0560d10d14e",
+          "fileName": " .jpg",
+          "content": "Референс: персонаж в манге, очки, детали одежды — для композиции и графичности."
+        },
+        {
+          "url": "https://media.progressusbot.ru/file/c36a8b15d8df49d0b10ee28c578d76de",
+          "fileName": "2026-03-14 19.22.39-2.txt",
+          "content": "Заметка (текст): обсуждение параллельных агентов — генерация и валидация; идея заменить ноду деплоя на ноду исправления ошибок для «поправлятора»."
+        },
+        {
+          "url": "https://media.progressusbot.ru/file/5a870b8dfbd54588a240c7a56bcf96b6",
+          "fileName": "2026-03-14 19.22.39.txt",
+          "content": "Заметка (текст): краткая версия того же созвона — валидатор vs генерация, system prompt для ноды фиксов."
+        }
+      ]
+    },
+    "wishes": {
+      "text": "",
+      "files": []
+    },
+    "user_preferences": {}
+  },
+  "site_target": "desktop",
+  "project_path": "",
+  "iteration_count": 0,
+  "files_created": []
+}

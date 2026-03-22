@@ -38,8 +38,9 @@ class GenerateAgentState(TypedDict):
     iteration_count: int  # Iteration counter (for debugging)
     
     # Content from Structure Agent / JSON (so generated site uses real data, not placeholders)
-    # json_data.design_preferences: опционально — явные визуальные преференсы; LLM → design_tokens до reference-сайта
-    json_data: Optional[dict]  # Guideline bundle: guideline, business_requirements, user_preferences, design_preferences
+    # json_data: плоский guideline bundle (guideline, business_requirements, …) ИЛИ v1 с business/guideline/wishes {text, files[]};
+    # после init_project нормализуется в плоский вид (см. spec/utils/json_data_bundle_v1.py).
+    json_data: Optional[dict]
     site_target: Optional[str]  # "mobile" | "desktop" — from json_data / user_preferences
     site_architecture: Optional[dict]  # From structure_agent: sections, blocks, navigation — fallback when no project_spec
     site_info: Optional[str]  # Short summary (theme, brand, CTA) for reasoning/load_skills; full brief only in execute

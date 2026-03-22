@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from agents.generate_agent.spec.utils.llm import get_llm
 from agents.generate_agent.spec.utils.site_target import normalize_site_target
+from agents.generate_agent.spec.utils.json_data_bundle_v1 import normalize_json_data
 
 log = logging.getLogger(__name__)
 
@@ -113,6 +114,7 @@ def _resolve_json_data_dict(state: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def _is_guideline_bundle(d: dict[str, Any]) -> bool:
+    """После normalize_json_data — плоские строки guideline / business_requirements."""
     g = d.get("guideline")
     b = d.get("business_requirements")
     if isinstance(g, str) and g.strip():
@@ -132,6 +134,7 @@ async def prepare_spec_input(state: dict[str, Any]) -> dict[str, Any]:
     raw = _resolve_json_data_dict(state)
     if not raw:
         raw = {}
+    raw, _ = normalize_json_data(raw)
 
     if not _is_guideline_bundle(raw):
         raise ValueError(

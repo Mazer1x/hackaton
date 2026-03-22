@@ -23,6 +23,10 @@ from agents.generate_agent.utils import (
 from agents.generate_agent.llm.tools import get_execute_tools_write_only
 from agents.generate_agent.llm.chat_factory import get_chat_llm
 from agents.generate_agent.nodes.agent_node import get_frontend_design_skill
+from agents.generate_agent.spec.utils.llm_image_attachment import (
+    merge_bundle_image_urls,
+    human_message_text_and_images,
+)
 
 
 # System prompt for execute: role, single tool, quality + frontend philosophy. No ReAct, no shell_execute/write_file/read_file.
@@ -39,6 +43,7 @@ YOUR ONLY TOOL: write_file_in_site(path, content)
 RULES:
 - CONTENT BRIEF: ALL headings, titles, body text, CTAs MUST come from it. No generic placeholders.
 - DESIGN BRIEF / DESIGN CONTEXT: use PALETTE hex, TYPOGRAPHY fonts, SECTIONS order, BACKGROUNDS and ANIMATIONS as described.
+- If the user message contains "USER REFERENCE IMAGES": embed every listed https URL in the file you write (<img src="…" /> or <Image src="…" /> with that exact URL). Never skip them for decorative text-only layouts.
 - SECTION COMPOSITION: Each section distinct — asymmetric grids, varied heights, one focal point. No cookie-cutter layout.
 - ONE FILE PER STEP: create only the file from PROJECT STEP. Call write_file_in_site once, now.
 
@@ -101,13 +106,25 @@ def _normalize_path(p: str) -> str:
     return p.strip().replace("\\", "/").lstrip("/")
 
 
+def _openai_content_block_str(b) -> str:
+    """Text or image URL from one multimodal block (OpenAI-style list content)."""
+    if not isinstance(b, dict):
+        return str(b)
+    if b.get("type") == "text" or "text" in b:
+        return str(b.get("text") or "")
+    if b.get("type") == "image_url":
+        iu = b.get("image_url")
+        if isinstance(iu, dict):
+            return str(iu.get("url") or "")
+        return str(iu or "")
+    return str(b)
+
+
 def _message_content_chars(msg) -> int:
     """Length of textual content for one LangChain message (for execute input size logging)."""
     c = getattr(msg, "content", None) or ""
     if isinstance(c, list):
-        c = " ".join(
-            (b.get("text", b) if isinstance(b, dict) else str(b)) for b in c
-        )
+        c = " ".join(_openai_content_block_str(b) for b in c)
     return len(str(c))
 
 
@@ -251,11 +268,16 @@ PROJECT_PATH: {project_path}
 TASK: {task_instruction}
 Use PROJECT STEP (ТЗ from reasoning) + CONTENT BRIEF + DESIGN BRIEF + DESIGN CONTEXT FOR THIS FILE + LOADED CONTEXT (skills). Call write_file_in_site now.
 """
-    messages = [SystemMessage(content=system_content), HumanMessage(content=execute_context)]
+    jd_raw = state.get("json_data")
+    jd = jd_raw if isinstance(jd_raw, dict) else {}
+    human_msg = human_message_text_and_images(
+        execute_context, merge_bundle_image_urls(jd)
+    )
+    messages = [SystemMessage(content=system_content), human_msg]
     messages = normalize_messages_for_api(messages)
 
     sys_chars = len(system_content)
-    human_chars = len(execute_context)
+    human_chars = _message_content_chars(human_msg)
     total_chars = _messages_total_input_chars(messages)
     print(
         f"EXECUTE_LLM input: total_chars={total_chars} "

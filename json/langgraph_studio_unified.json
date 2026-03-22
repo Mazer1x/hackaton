@@ -10,8 +10,7 @@
     "design_reference_url": "https://mail.ru/",
     "business_requirements": "Лендинг мобильного сервиса «Личный дневник трат»: одна страница — герой с CTA, три преимущества, простая форма подписки на бета. Тон дружелюбный, без финансовых обещаний.",
     "guideline": "Контент и тон: вымышленный продукт, без чужих брендов. Визуал: чистый интерфейс, много воздуха, акцентные кнопки; контраст текста по WCAG.",
-    "user_preferences": {},
-    "site_target": "mobile"
+    "user_preferences": {}
   },
   "site_target": "mobile",
   "project_path": "/home/mazer1x/Documents/Coding/AutoAi1/site",
