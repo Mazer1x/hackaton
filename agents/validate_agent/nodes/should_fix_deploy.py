@@ -10,7 +10,7 @@ def _deploy_failed(state: ValidateAgentState) -> bool:
     """True, если в deploy_log есть признак ошибки деплоя (remote/post-receive или типичные маркеры)."""
     log = (state.get("deploy_log") or "") + (state.get("deploy_url") or "")
     if not log.strip():
-        return False
+        return True  # пустой лог = деплой не запустился или упал без вывода
     markers = [
         "Ошибка деплоя",
         "ERROR: Деплой завершился с ошибкой",
